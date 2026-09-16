@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>三位數加法學習單 - 定位板步驟版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;600;700&display=swap');
+        
+        body {
+            font-family: 'Noto Sans TC', sans-serif;
+            background-color: #f8fafc;
+            touch-action: manipulation;
+        }
+
+        /* 數學顯示特定結構 */
+        .math { font-size: 28px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; }
+        .fraction { display: inline-flex; flex-direction: column; align-items: center; line-height: 1.1; vertical-align: middle; }
+        .fraction span:first-child { border-bottom: 2px solid #000; padding: 0 4px; }
+        .mixed { display: inline-flex; align-items: center; gap: 2px; }
+
+        /* 一般填寫空格 */
+        .slot {
+            width: 70px;
+            height: 60px;
+            border: 3px solid #cbd5e1;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 36px;
+            font-weight: 700;
+            color: #334155;
+            transition: all 0.3s;
+            background-color: #ffffff;
+            cursor: pointer;
+        }
+        .slot:disabled {
+            background-color: #f1f5f9;
+            border-color: #e2e8f0;
+            color: #64748b;
+            cursor: not-allowed;
+        }
+        
+        /* 進位用的較小空格 */
+        .slot-carry {
+            width: 45px;
+            height: 45px;
+            border: 2px dashed #94a3b8;
+            border-radius: 50%;
+            text-align: center;
+            font-size: 24px;
+            font-weight: 700;
+            color: #ef4444;
+            transition: all 0.3s;
+            background-color: #fff;
+        }
+        .slot-carry:disabled {
+            background-color: transparent;
+            border-color: transparent;
+            color: #ef4444;
+        }
+
+        /* 焦點與高亮動畫 */
+        @keyframes flashBorder {
+            0% { box-shadow: 0 0 0px #3b82f6; border-color: #3b82f6; }
+            50% { box-shadow: 0 0 15px #3b82f6; border-color: #2563eb; background-color: #eff6ff;}
+            100% { box-shadow: 0 0 0px #3b82f6; border-color: #3b82f6; }
+        }
+        .slot.active-target, .slot-carry.active-target {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+            animation: flashBorder 1.5s infinite;
+            outline: none;
+        }
+        
+        /* 錯誤閃爍動畫 */
+        @keyframes shakeError {
+            0%, 100% { transform: translateX(0); }
+            20%, 60% { transform: translateX(-5px); border-color: #ef4444; background-color: #fef2f2;}
+            40%, 80% { transform: translateX(5px); border-color: #ef4444; background-color: #fef2f2;}
+        }
+        .error-shake {
+            animation: shakeError 0.5s ease-in-out;
+        }
+
+        /* 定位板表頭 */
+        .place-header {
+            font-size: 24px;
+            font-weight: 700;
+            border-radius: 8px;
+            padding: 6px 0;
+            width: 75px;
+            margin: 0 auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+        }
+        .bg-hundreds { background-color: #fee2e2; color: #991b1b; }
+        .bg-tens { background-color: #dcfce7; color: #166534; }
+        .bg-ones { background-color: #e0e7ff; color: #3730a3; }
+
+        /* 步驟解鎖過渡 */
+        .step-container {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+            pointer-events: none;
+            display: none;
+        }
+        .step-container.unlocked {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+            display: flex;
+        }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <!-- 導覽列 -->
+    <nav class="bg-indigo-600 text-white shadow-lg p-4 flex justify-between items-center z-10 shrink-0">
+        <div class="text-2xl font-bold flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-yellow-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+            </svg>
+            三位數加法學習單
+        </div>
+        <!-- 題目切換按鈕區 -->
+        <div class="flex gap-2" id="nav-questions">
+            <!-- 動態生成 -->
+        </div>
+        <div class="flex gap-6 text-xl font-bold items-center">
+            <div class="bg-indigo-800 px-4 py-2 rounded-lg shadow-inner flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                得分: <span id="score-display" class="text-yellow-300">0</span>
+            </div>
+            <div class="bg-indigo-800 px-4 py-2 rounded-lg shadow-inner flex items-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                <span id="timer-display">07:00</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 主要內容區 -->
+    <main class="flex-1 flex overflow-hidden">
+        <!-- 左側：題目呈現 -->
+        <div class="w-2/5 bg-white shadow-xl z-0 flex flex-col justify-center items-center p-8 border-r-4 border-indigo-100">
+            <h2 class="text-4xl font-bold text-gray-800 mb-8 border-b-4 border-blue-500 pb-4 inline-block">計算題</h2>
+            <div class="text-7xl font-bold text-indigo-900 tracking-wider flex items-center gap-4" id="question-text">
+                <!-- 動態題目 -->
+            </div>
+        </div>
+
+        <!-- 右側：定位板與步驟區 -->
+        <div class="w-3/5 bg-slate-50 flex flex-col items-center pt-8 overflow-y-auto relative">
+            
+            <!-- 定位板區塊 -->
+            <div class="bg-white p-8 rounded-2xl shadow-xl border-2 border-gray-200">
+                <div class="grid grid-cols-4 gap-x-4 gap-y-3 items-center w-max mx-auto relative">
+                    <!-- 表頭 -->
+                    <div></div>
+                    <div class="place-header bg-hundreds">
+                        <div class="h-10 flex items-end justify-center pb-1">
+                            <svg class="w-9 h-9 drop-shadow-md" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="1" y="1" width="98" height="98" fill="#fca5a5" stroke="#b91c1c" stroke-width="2"/>
+                                <path d="M0 10h100 M0 20h100 M0 30h100 M0 40h100 M0 50h100 M0 60h100 M0 70h100 M0 80h100 M0 90h100" stroke="#ef4444" stroke-width="1.5"/>
+                                <path d="M10 0v100 M20 0v100 M30 0v100 M40 0v100 M50 0v100 M60 0v100 M70 0v100 M80 0v100 M90 0v100" stroke="#ef4444" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <span>百</span>
+                    </div>
+                    <div class="place-header bg-tens">
+                        <div class="h-10 flex items-end justify-center pb-1">
+                            <svg class="h-9 w-[12px] drop-shadow-md" viewBox="0 0 10 100" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="0.5" y="0.5" width="9" height="99" fill="#86efac" stroke="#15803d" stroke-width="2"/>
+                                <path d="M0 10h10 M0 20h10 M0 30h10 M0 40h10 M0 50h10 M0 60h10 M0 70h10 M0 80h10 M0 90h10" stroke="#16a34a" stroke-width="1.5"/>
+                            </svg>
+                        </div>
+                        <span>十</span>
+                    </div>
+                    <div class="place-header bg-ones">
+                        <div class="h-10 flex items-end justify-center pb-1">
+                            <svg class="w-[12px] h-[12px] drop-shadow-md" viewBox="0 0 10 10" xmlns="http://www.w3.org/2000/svg">
+                                <rect x="0.5" y="0.5" width="9" height="9" fill="#a5b4fc" stroke="#4338ca" stroke-width="2"/>
+                            </svg>
+                        </div>
+                        <span>個</span>
+                    </div>
+
+                    <!-- 進位列 -->
+                    <div></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot-carry" id="c100" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot-carry" id="c10" disabled></div>
+                    <div></div>
+
+                    <!-- 加數 1 -->
+                    <div></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="n1_100" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="n1_10" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="n1_1" disabled></div>
+
+                    <!-- 加數 2 (含加號) -->
+                    <div class="text-5xl font-bold text-gray-700 text-center leading-none">+</div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="n2_100" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="n2_10" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="n2_1" disabled></div>
+
+                    <!-- 分隔線 -->
+                    <div class="col-span-4 border-b-8 border-gray-800 my-2 rounded-full"></div>
+
+                    <!-- 和 -->
+                    <div></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="a_100" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="a_10" disabled></div>
+                    <div class="flex justify-center"><input type="text" inputmode="decimal" maxlength="1" class="slot" id="a_1" disabled></div>
+                </div>
+            </div>
+
+            <!-- 步驟指引與操作區 -->
+            <div class="mt-8 w-4/5 max-w-xl flex flex-col gap-4 pb-12" id="steps-wrapper">
+                <!-- 步驟卡片將在此處切換 -->
+                <div class="bg-blue-100 border-l-8 border-blue-500 p-6 rounded-r-xl shadow-md flex items-center justify-between w-full step-container unlocked" id="step-action-card">
+                    <div class="flex items-center gap-4">
+                        <div class="bg-blue-500 text-white text-2xl font-bold w-12 h-12 flex items-center justify-center rounded-full" id="step-number">1</div>
+                        <div class="text-2xl font-bold text-gray-800" id="step-instruction">請將數字填入直式的定位板中。</div>
+                    </div>
+                    <button onclick="checkCurrentPhase()" class="bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold py-3 px-8 rounded-xl shadow-lg transform transition active:scale-95 whitespace-nowrap">
+                        檢查答案
+                    </button>
+                </div>
+                
+                <!-- 提示訊息 -->
+                <div id="feedback-msg" class="text-2xl font-bold text-center h-10 transition-opacity opacity-0">
+                    <!-- 動態訊息 -->
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- 結算視窗 -->
+    <div id="result-modal" class="fixed inset-0 bg-black bg-opacity-60 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-3xl shadow-2xl p-10 max-w-2xl w-full text-center transform scale-95 transition-transform duration-300">
+            <h2 class="text-5xl font-bold text-indigo-600 mb-6 flex justify-center items-center gap-4">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-16 w-16 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd" />
+                </svg>
+                恭喜完成！
+            </h2>
+            <p class="text-3xl text-gray-700 mb-4 font-semibold">你已經完成所有題目囉！</p>
+            <div class="bg-indigo-50 rounded-2xl p-6 mb-8 inline-block text-left mx-auto">
+                <p class="text-2xl text-gray-800 mb-2 font-bold">🎯 總得分：<span id="final-score" class="text-blue-600 text-3xl">0</span> 分</p>
+                <p class="text-2xl text-gray-800 font-bold">⏱️ 總用時：<span id="final-time" class="text-green-600 text-3xl">00:00</span></p>
+            </div>
+            <div class="flex justify-center gap-6">
+                <button onclick="location.reload()" class="bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold py-4 px-10 rounded-xl shadow-lg transition">再做一次</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 題目資料 (6題)
+        const questionsData = [
+            { n1: "123", n2: "456", a: "579", c10: false, c100: false },
+            { n1: "245", n2: "138", a: "383", c10: true,  c100: false },
+            { n1: "362", n2: "471", a: "833", c10: false, c100: true  },
+            { n1: "589", n2: "246", a: "835", c10: true,  c100: true  },
+            { n1: "485", n2: "342", a: "827", c10: false, c100: true  },
+            { n1: "678", n2: "254", a: "932", c10: true,  c100: true  }
+        ];
+
+        // 狀態變數
+        let currentQIndex = 0;
+        let currentPhase = 0; // 0: 填加數, 1: 加個位, 2: 加十位, 3: 加百位
+        let score = 0;
+        let timeRemaining = 7 * 60; // 7分鐘
+        let timerInterval = null;
+        let activeTargetInputs = []; // 當前階段需要填寫的 ID 列表
+
+        // 音效設定 (Web Audio API)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playSound(type) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            
+            if (type === 'correct') {
+                osc.type = 'sine'; 
+                osc.frequency.setValueAtTime(600, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); 
+                osc.stop(audioCtx.currentTime + 0.3);
+            } else {
+                osc.type = 'triangle'; 
+                osc.frequency.setValueAtTime(300, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.5, audioCtx.currentTime); 
+                gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                osc.start(); 
+                osc.stop(audioCtx.currentTime + 0.3);
+            }
+        }
+
+        // 初始化
+        window.onload = () => {
+            initNav();
+            startTimer();
+            loadQuestion(0);
+            bindInputEvents();
+        };
+
+        function initNav() {
+            const nav = document.getElementById('nav-questions');
+            nav.innerHTML = '';
+            questionsData.forEach((_, idx) => {
+                const btn = document.createElement('div');
+                btn.className = `w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold border-2 transition-all ${idx === 0 ? 'bg-white text-indigo-600 border-white' : 'bg-transparent text-white border-white opacity-50'}`;
+                btn.innerText = idx + 1;
+                btn.id = `nav-btn-${idx}`;
+                nav.appendChild(btn);
+            });
+        }
+
+        function updateNav() {
+            questionsData.forEach((_, idx) => {
+                const btn = document.getElementById(`nav-btn-${idx}`);
+                if (idx === currentQIndex) {
+                    btn.className = 'w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold border-2 bg-white text-indigo-600 border-white shadow-lg transform scale-110';
+                } else if (idx < currentQIndex) {
+                    btn.className = 'w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold border-2 bg-indigo-300 text-indigo-800 border-indigo-300';
+                } else {
+                    btn.className = 'w-10 h-10 flex items-center justify-center rounded-full text-lg font-bold border-2 bg-transparent text-white border-white opacity-50';
+                }
+            });
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                if (timeRemaining <= 0) {
+                    clearInterval(timerInterval);
+                    showResult();
+                    return;
+                }
+                timeRemaining--;
+                const m = Math.floor(timeRemaining / 60).toString().padStart(2, '0');
+                const s = (timeRemaining % 60).toString().padStart(2, '0');
+                document.getElementById('timer-display').innerText = `${m}:${s}`;
+            }, 1000);
+        }
+
+        function clearBoard() {
+            const allInputs = document.querySelectorAll('input.slot, input.slot-carry');
+            allInputs.forEach(input => {
+                input.value = '';
+                input.disabled = true;
+                input.classList.remove('active-target', 'error-shake');
+                input.style.visibility = 'visible';
+            });
+            // 隱藏非題目的進位格，以保持畫面乾淨
+            document.getElementById('c100').style.visibility = 'hidden';
+            document.getElementById('c10').style.visibility = 'hidden';
+        }
+
+        function loadQuestion(index) {
+            currentQIndex = index;
+            currentPhase = 0;
+            const q = questionsData[index];
+            
+            // 顯示題目
+            document.getElementById('question-text').innerHTML = `${q.n1} <span class="text-5xl text-gray-400">+</span> ${q.n2} <span class="text-5xl text-gray-400">=</span> <div class="w-24 h-20 border-4 border-indigo-200 rounded-xl bg-indigo-50"></div>`;
+            
+            updateNav();
+            clearBoard();
+            
+            // 顯示該題需要的進位格
+            if(q.c10) document.getElementById('c10').style.visibility = 'visible';
+            if(q.c100) document.getElementById('c100').style.visibility = 'visible';
+
+            setupPhase();
+        }
+
+        function setupPhase() {
+            const q = questionsData[currentQIndex];
+            activeTargetInputs = [];
+            
+            const stepNum = document.getElementById('step-number');
+            const stepInst = document.getElementById('step-instruction');
+
+            // 依據階段設定鎖定的輸入框與提示
+            if (currentPhase === 0) {
+                stepNum.innerText = "1";
+                stepInst.innerText = "請將上方題目的數字填入直式的定位板中。";
+                activeTargetInputs = ['n1_100', 'n1_10', 'n1_1', 'n2_100', 'n2_10', 'n2_1'];
+            } else if (currentPhase === 1) {
+                stepNum.innerText = "2";
+                stepInst.innerText = "從「個位」開始相加。";
+                activeTargetInputs = ['a_1'];
+                if(q.c10) activeTargetInputs.unshift('c10'); // 先填進位或和皆可，陣列順序影響 auto-focus 順序
+            } else if (currentPhase === 2) {
+                stepNum.innerText = "3";
+                stepInst.innerText = "接著相加「十位」。";
+                activeTargetInputs = ['a_10'];
+                if(q.c100) activeTargetInputs.unshift('c100');
+            } else if (currentPhase === 3) {
+                stepNum.innerText = "4";
+                stepInst.innerText = "最後相加「百位」。";
+                activeTargetInputs = ['a_100'];
+            }
+
+            // 開放目標輸入框
+            activeTargetInputs.forEach(id => {
+                const el = document.getElementById(id);
+                el.disabled = false;
+            });
+
+            updateFocusHighlight();
+        }
+
+        function updateFocusHighlight() {
+            // 移除所有高亮
+            activeTargetInputs.forEach(id => {
+                document.getElementById(id).classList.remove('active-target');
+            });
+
+            // 找到第一個未填寫的目標並高亮、focus
+            for (let id of activeTargetInputs) {
+                const el = document.getElementById(id);
+                if (el.value === '') {
+                    el.classList.add('active-target');
+                    el.focus();
+                    break;
+                }
+            }
+        }
+
+        function bindInputEvents() {
+            const allInputs = document.querySelectorAll('input');
+            allInputs.forEach(input => {
+                // 防呆與自動跳格
+                input.addEventListener('input', (e) => {
+                    // 只允許數字
+                    input.value = input.value.replace(/[^0-9]/g, '');
+                    
+                    if (input.value !== '') {
+                        updateFocusHighlight();
+                    }
+                });
+
+                // 點擊清空並高亮
+                input.addEventListener('click', (e) => {
+                    if (!input.disabled) {
+                        input.value = '';
+                        updateFocusHighlight();
+                        input.classList.add('active-target');
+                    }
+                });
+            });
+        }
+
+        function showMessage(msg, isError = false) {
+            const fb = document.getElementById('feedback-msg');
+            fb.innerText = msg;
+            fb.className = `text-2xl font-bold text-center h-10 transition-opacity duration-300 opacity-100 ${isError ? 'text-red-500' : 'text-green-600'}`;
+            setTimeout(() => {
+                fb.classList.replace('opacity-100', 'opacity-0');
+            }, 2500);
+        }
+
+        function checkCurrentPhase() {
+            const q = questionsData[currentQIndex];
+            
+            // 檢查是否全填滿
+            let isAllFilled = true;
+            activeTargetInputs.forEach(id => {
+                if (document.getElementById(id).value === '') {
+                    isAllFilled = false;
+                }
+            });
+
+            if (!isAllFilled) {
+                showMessage('請填滿閃爍藍框的空格！', true);
+                playSound('incorrect');
+                return;
+            }
+
+            // 驗證答案
+            let isCorrect = true;
+            const expectedValues = {
+                'n1_100': q.n1[0], 'n1_10': q.n1[1], 'n1_1': q.n1[2],
+                'n2_100': q.n2[0], 'n2_10': q.n2[1], 'n2_1': q.n2[2],
+                'c10': '1', 'a_1': q.a[2],
+                'c100': '1', 'a_10': q.a[1],
+                'a_100': q.a[0]
+            };
+
+            activeTargetInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el.value !== expectedValues[id]) {
+                    isCorrect = false;
+                    el.classList.add('error-shake');
+                    setTimeout(() => el.classList.remove('error-shake'), 500);
+                }
+            });
+
+            if (isCorrect) {
+                playSound('correct');
+                showMessage('答對了！棒極了！');
+                score += 10;
+                document.getElementById('score-display').innerText = score;
+
+                // 鎖定當前輸入
+                activeTargetInputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    el.disabled = true;
+                    el.classList.remove('active-target');
+                    // 加上淺綠底色代表完成
+                    el.style.backgroundColor = '#f0fdf4';
+                    el.style.borderColor = '#86efac';
+                });
+
+                // 進入下一階段或下一題
+                currentPhase++;
+                if (currentPhase > 3) {
+                    setTimeout(() => {
+                        // 替換左側的大框框為正確答案
+                        document.getElementById('question-text').innerHTML = `${q.n1} <span class="text-5xl text-gray-400">+</span> ${q.n2} <span class="text-5xl text-gray-400">=</span> <div class="text-blue-600">${q.a}</div>`;
+                        
+                        setTimeout(() => {
+                            if (currentQIndex < questionsData.length - 1) {
+                                loadQuestion(currentQIndex + 1);
+                            } else {
+                                showResult();
+                            }
+                        }, 1500);
+                    }, 500);
+                } else {
+                    setupPhase();
+                }
+            } else {
+                playSound('incorrect');
+                showMessage('再想想看，請檢查計算過程！', true);
+                updateFocusHighlight();
+            }
+        }
+
+        function showResult() {
+            clearInterval(timerInterval);
+            const timeUsed = (7 * 60) - timeRemaining;
+            const m = Math.floor(timeUsed / 60).toString().padStart(2, '0');
+            const s = (timeUsed % 60).toString().padStart(2, '0');
+            
+            document.getElementById('final-score').innerText = score;
+            document.getElementById('final-time').innerText = `${m} 分 ${s} 秒`;
+            
+            const modal = document.getElementById('result-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            // 彈出動畫
+            setTimeout(() => {
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+            }, 10);
+        }
+    </script>
+</body>
+</html>
