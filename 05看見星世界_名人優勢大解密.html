@@ -1,0 +1,996 @@
+<title>名人優勢大解密</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* Layout: 延續海報「名人優勢大解密」— 淡紫底、白色圓角卡、四色剪影格、深藍膠囊標籤；單一淺色主題，投影最清楚 */
+:root {
+  --paper: #EFE6EE;
+  --card: #FFFFFF;
+  --navy: #141B7A;
+  --ink: #1E2748;
+  --muted: #474C66;
+  --pink: #C2457F;
+  --coral: #E8673C;
+  --green: #1F6E2A;
+  --yellow: #FFE04F;
+  --line: #D5C4D3;
+  --sky: #E3EEFF;
+  --ok-bg: #E5F5E2;
+  --no-bg: #FDE9E0;
+  --t-musk: #C9DCF3;
+  --t-tajiri: #FDECA6;
+  --t-hopkins: #D6ECDC;
+  --t-peek: #F8D9C8;
+  --f-display: "Huninn", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { background: var(--paper); color: var(--ink); font-family: var(--f-body); font-size: 1.25rem; line-height: 1.75; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 30; background: var(--paper); }
+h1, h2, h3, h4 { font-family: var(--f-display); font-weight: 400; text-wrap: balance; line-height: 1.3; margin: 0; }
+p { margin: 0; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 3px solid var(--navy); outline-offset: 3px; border-radius: 8px; }
+[hidden] { display: none !important; }
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* top bar */
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(8px); border-bottom: 2px solid var(--line); }
+.top .wrap { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding-block: 8px; }
+.brand { font-family: var(--f-display); color: var(--navy); font-size: 1.15rem; white-space: nowrap; margin-right: auto; }
+.nav { order: 9; flex: 1 0 100%; display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.nav a { white-space: nowrap; text-decoration: none; color: var(--navy); font-weight: 700; font-size: 1.05rem; padding: 4px 12px; border-radius: 999px; display: inline-flex; align-items: center; gap: 4px; }
+.nav a:hover { background: var(--card); }
+.nav a[aria-current="page"] { background: var(--navy); color: #fff; }
+.nav .nst { width: 16px; height: 16px; }
+.pill { border: 2px solid var(--navy); background: var(--card); color: var(--navy); border-radius: 999px; padding: 3px 12px 3px 8px; display: inline-flex; align-items: center; gap: 4px; font-weight: 700; font-size: 1.02rem; white-space: nowrap; text-decoration: none; }
+.pill svg { width: 20px; height: 20px; }
+.pill[aria-pressed="false"] { opacity: .55; }
+.pill select { font: inherit; color: var(--navy); background: transparent; border: 0; padding: 0; cursor: pointer; }
+.pill.fb { background: var(--pink); border-color: var(--pink); color: #fff; }
+.score { display: flex; align-items: center; gap: 6px; background: var(--navy); color: #fff; border-radius: 999px; padding: 4px 14px 4px 10px; font-weight: 700; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.score svg { width: 22px; height: 22px; }
+.score.pop { animation: pop .5s ease; }
+@keyframes pop { 40% { transform: scale(1.18); } }
+@media (max-width: 600px) { .pill .hide-s { display: none; } }
+
+/* speaker */
+.spk { border: 2px solid var(--navy); background: var(--card); color: var(--navy); width: 40px; height: 40px; border-radius: 50%; display: inline-grid; place-items: center; flex: none; padding: 0; }
+.spk svg { width: 22px; height: 22px; }
+.spk:hover { background: var(--sky); }
+.spk.on { background: var(--yellow); }
+.with-spk { display: flex; align-items: flex-start; gap: 12px; }
+.with-spk > :first-child { flex: 1; min-width: 0; }
+
+/* celebration */
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 50; }
+.toast { position: fixed; left: 50%; top: 42%; z-index: 51; transform: translate(-50%, -50%) scale(.6); opacity: 0; pointer-events: none; background: var(--navy); color: #fff; font-family: var(--f-display); font-size: clamp(1.8rem, 5vw, 3rem); padding: 14px 36px; border-radius: 999px; border: 5px solid var(--yellow); white-space: nowrap; display: flex; align-items: center; gap: 12px; }
+.toast svg { width: 1.1em; height: 1.1em; }
+.toast.show { animation: toast 3s ease forwards; }
+.toast.info { font-size: clamp(1.2rem, 3vw, 1.6rem); border-color: var(--pink); }
+@keyframes toast { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.6); } 10% { opacity: 1; transform: translate(-50%, -50%) scale(1.08); } 18% { transform: translate(-50%, -50%) scale(1); } 82% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -60%) scale(1); } }
+
+/* buttons */
+.btn { border: 0; border-radius: 999px; padding: 12px 24px; font-weight: 700; font-size: 1.15rem; background: var(--coral); color: #fff; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: transform .15s; }
+.btn:hover { transform: translateY(-2px); }
+.btn.ghost { background: var(--card); color: var(--navy); box-shadow: inset 0 0 0 2px var(--navy); }
+.btn.navy { background: var(--navy); }
+.btn.pink { background: var(--pink); }
+.btn[disabled] { opacity: .45; cursor: default; transform: none; }
+.btn svg { width: 20px; height: 20px; }
+
+/* hero */
+.hero { display: grid; grid-template-columns: 1.1fr 1fr; gap: 28px; align-items: center; padding-block: 36px 16px; }
+.hero > * { min-width: 0; }
+.eyebrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 700; color: var(--navy); letter-spacing: .04em; font-size: 1.12rem; }
+.eyebrow svg { width: 34px; height: 34px; flex: none; }
+.bubble-title { display: inline-block; margin-top: 14px; background: var(--card); border: 6px solid var(--coral); border-radius: 28px; padding: 14px 26px 16px; position: relative; }
+.bubble-title::after { content: ""; position: absolute; left: 44px; bottom: -26px; width: 34px; height: 30px; background: var(--card); border-left: 6px solid var(--coral); border-bottom: 6px solid var(--coral); transform: skewY(-28deg); }
+.bubble-title .t1 { display: block; font-family: var(--f-display); font-size: clamp(1.7rem, 4vw, 2.8rem); color: var(--ink); line-height: 1.25; }
+.bubble-title .t1 .q { color: var(--coral); }
+.bubble-title .t2 { display: block; font-family: var(--f-display); font-size: clamp(1.2rem, 2.6vw, 1.8rem); color: var(--ink); }
+.hero h1 { margin-top: 34px; font-size: clamp(2.6rem, 6.4vw, 4.6rem); color: var(--navy); letter-spacing: .04em; }
+.hero-lede { margin-top: 10px; max-width: 34em; font-size: 1.2rem; }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 20px; }
+.hero-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini { border-radius: 24px; overflow: hidden; position: relative; box-shadow: 6px 6px 0 #4a3f52; }
+.mini svg { display: block; width: 100%; height: auto; }
+.mini .lab { position: absolute; left: 6px; right: 6px; bottom: 6px; background: #0B0F8C; color: #fff; border-radius: 999px; text-align: center; font-weight: 900; font-size: clamp(.8rem, 1.5vw, 1.02rem); padding: 2px 6px; line-height: 1.5; }
+.maker { text-align: right; font-weight: 700; font-size: 1.05rem; letter-spacing: .06em; margin-top: 12px; }
+
+/* data card */
+main > section.page { margin-top: 44px; }
+main > section.hero.page { margin-top: 0; }
+.db { background: var(--card); border-radius: 40px; padding: 48px 40px 36px; position: relative; }
+.tag { position: absolute; top: -26px; left: 28px; background: var(--navy); color: #fff; font-family: var(--f-display); font-size: 1.5rem; padding: 6px 28px; border-radius: 999px; letter-spacing: .06em; white-space: nowrap; }
+.section-head { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 8px 24px; margin-bottom: 24px; }
+.section-head h2 { font-size: clamp(1.6rem, 3.2vw, 2.3rem); color: var(--navy); }
+.section-head p { color: var(--muted); max-width: 36em; }
+.hl { color: var(--pink); font-weight: 900; }
+
+/* rules */
+.rules { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; }
+.rule { background: var(--paper); border-radius: 26px; padding: 22px; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.rule svg { width: 84px; height: 84px; }
+.rule h3 { font-size: 1.35rem; color: var(--navy); }
+.rule p { font-size: 1.12rem; }
+.why { margin-top: 22px; background: var(--sky); border-radius: 24px; padding: 18px 22px; font-size: 1.12rem; }
+.why b { color: var(--navy); }
+
+/* files */
+.files { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+.file { border-radius: 30px; padding: 18px; min-width: 0; display: grid; grid-template-columns: 150px 1fr; gap: 18px; align-items: start; }
+.file .ph { border-radius: 22px; overflow: hidden; background: rgba(255,255,255,.55); }
+.file .ph svg { display: block; width: 100%; height: auto; }
+.file h3 { font-size: 1.45rem; color: var(--navy); }
+.file .role { font-weight: 700; color: var(--muted); font-size: 1.05rem; }
+.badge { display: inline-flex; align-items: center; gap: 6px; border-radius: 999px; padding: 2px 12px; font-weight: 900; font-size: 1rem; margin: 6px 0 4px; }
+.badge.ok { background: var(--green); color: #fff; }
+.badge.warn { background: #8A5A00; color: #fff; }
+.badge.no { background: #B3261E; color: #fff; }
+.badge.diff { background: var(--navy); color: #fff; }
+.file dl { margin: 6px 0 0; display: grid; gap: 6px; }
+.file dt { font-weight: 900; color: var(--pink); font-size: 1.02rem; }
+.file dd { margin: 0; font-size: 1.08rem; line-height: 1.65; }
+.file .src { margin-top: 8px; font-size: .95rem; color: var(--muted); }
+
+/* strengths */
+.strengths { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; }
+.str { background: var(--paper); border-radius: 24px; padding: 18px 16px; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.str svg { width: 64px; height: 64px; }
+.str h3 { font-size: 1.3rem; color: var(--navy); }
+.str p { font-size: 1.05rem; line-height: 1.6; }
+.str .uni { margin-top: auto; background: var(--card); border-radius: 14px; padding: 8px 12px; font-size: 1.02rem; }
+.str .uni b { color: var(--pink); }
+.note { margin-top: 18px; display: flex; gap: 12px; align-items: flex-start; color: var(--muted); font-size: 1.1rem; }
+.note b { color: var(--ink); }
+.note svg { width: 28px; height: 28px; flex: none; margin-top: 2px; }
+.shine { margin-top: 22px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.shine > div { border: 2px dashed var(--pink); border-radius: 20px; padding: 14px 16px; min-width: 0; font-size: 1.08rem; }
+.shine h4 { color: var(--pink); font-size: 1.2rem; }
+
+/* game shell */
+.progress { display: flex; gap: 6px; margin-bottom: 14px; }
+.progress span { flex: 1; height: 8px; border-radius: 4px; background: var(--line); }
+.progress span.done { background: var(--navy); }
+.progress span.now { background: var(--coral); }
+.gm { display: grid; grid-template-columns: 1fr 1.2fr; gap: 26px; align-items: start; }
+.gm > * { min-width: 0; }
+.gm-art { background: var(--paper); border-radius: 26px; overflow: hidden; position: relative; }
+.gm-art svg { display: block; width: 100%; height: auto; }
+.q-num { font-weight: 700; color: var(--muted); }
+.gm-q { font-family: var(--f-display); font-size: clamp(1.3rem, 2.6vw, 1.75rem); color: var(--ink); line-height: 1.5; }
+.choices { display: grid; gap: 10px; margin-top: 14px; }
+.choices.two { grid-template-columns: 1fr 1fr; }
+.choices button { text-align: left; border: 3px solid var(--line); background: var(--card); border-radius: 18px; padding: 10px 14px; display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: center; font-size: 1.15rem; line-height: 1.55; font-weight: 500; transition: border-color .15s, background .15s, transform .15s; }
+.choices button:hover:not([disabled]) { border-color: var(--navy); background: var(--sky); }
+.choices button .k { width: 36px; height: 36px; border-radius: 50%; background: var(--navy); color: #fff; display: grid; place-items: center; font-family: var(--f-display); font-size: 1.05rem; }
+.choices button.right { border-color: var(--green); background: var(--ok-bg); }
+.choices button.right .k { background: var(--green); }
+.choices button.wrong { border-color: var(--coral); background: var(--no-bg); opacity: .7; text-decoration: line-through; }
+.choices button.wrong .k { background: var(--coral); }
+.choices button[disabled] { cursor: default; }
+.choices.names button { font-family: var(--f-display); font-size: 1.3rem; }
+.choices.names button small { display: block; font-family: var(--f-body); font-size: .95rem; color: var(--muted); }
+.choices.big button { display: flex; justify-content: center; gap: 12px; text-align: center; font-family: var(--f-display); font-size: 1.45rem; padding: 16px; }
+.choices.big button .k { width: auto; height: auto; background: none; }
+.choices.big button svg { width: 44px; height: 44px; display: block; }
+.fb-box { margin-top: 14px; border-radius: 22px; padding: 14px 18px; font-size: 1.12rem; }
+.fb-box.ok { background: var(--ok-bg); }
+.fb-box.no { background: var(--no-bg); }
+.fb-box .verdict { font-family: var(--f-display); font-size: 1.3rem; }
+.fb-box.ok .verdict { color: var(--green); }
+.fb-box.no .verdict { color: #B3261E; }
+.row-end { display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; margin-top: 14px; }
+.done-box { text-align: center; padding: 18px 10px; display: grid; gap: 14px; justify-items: center; }
+.done-box h3 { font-size: clamp(1.6rem, 3.6vw, 2.4rem); color: var(--navy); }
+.done-box .stars { display: flex; gap: 6px; }
+.done-box .stars svg { width: 44px; height: 44px; }
+
+/* game1 reveal */
+.reveal-name { position: absolute; left: 10px; right: 10px; bottom: 10px; background: var(--navy); color: #fff; text-align: center; border-radius: 999px; font-family: var(--f-display); font-size: 1.25rem; padding: 4px 10px; animation: pop .6s ease; }
+.gm-art .flip { animation: flipIn .6s ease; }
+@keyframes flipIn { from { transform: rotateY(90deg); } to { transform: rotateY(0); } }
+
+/* game2 stamp */
+.stamp { position: absolute; right: 8%; top: 12%; border: 6px solid currentColor; border-radius: 16px; padding: 4px 16px; font-family: var(--f-display); font-size: clamp(1.4rem, 3.2vw, 2.1rem); background: rgba(255,255,255,.88); transform: rotate(-12deg); animation: stampIn .35s cubic-bezier(.3,1.6,.6,1); }
+.stamp.ok { color: var(--green); }
+.stamp.fix { color: #B3261E; }
+@keyframes stampIn { from { transform: rotate(-12deg) scale(2.4); opacity: 0; } to { transform: rotate(-12deg) scale(1); opacity: 1; } }
+
+/* game3 balloons */
+.sky { --sky: 340px; position: relative; height: var(--sky); margin-top: 14px; border-radius: 26px; overflow: hidden; background: linear-gradient(#BFD9FF, #EAF2FF 70%, #FFF6D6); }
+.sky .cloud { position: absolute; background: #fff; border-radius: 999px; opacity: .85; }
+.balloon { position: absolute; top: 100%; z-index: 2; width: clamp(130px, 17vw, 170px); border: 0; padding: 0; background: none; cursor: pointer; animation: floatUp 14s linear infinite; }
+.balloon svg { width: 100%; height: auto; display: block; filter: drop-shadow(0 4px 0 rgba(20,27,122,.18)); }
+.balloon span { position: absolute; left: 10%; right: 10%; top: 18%; height: 42%; display: grid; place-items: center; text-align: center; }
+.balloon span b { background: #fff; color: var(--navy); font-family: var(--f-display); font-weight: 400; font-size: clamp(1.25rem, 2.2vw, 1.55rem); line-height: 1.2; padding: 4px 8px; border-radius: 12px; border: 3px solid var(--navy); white-space: nowrap; }
+.balloon:hover svg { transform: scale(1.05); }
+.balloon:focus-visible { outline: 4px solid var(--navy); border-radius: 50%; }
+@keyframes floatUp { from { transform: translateY(0); } to { transform: translateY(calc(-1 * var(--sky) - 110%)); } }
+.sky.stop .balloon { animation-play-state: paused; cursor: default; }
+.sky.stop .balloon:not(.right) { opacity: .2; transition: opacity .4s; }
+.balloon.right svg { filter: drop-shadow(0 0 12px #FFE04F) drop-shadow(0 0 4px #FFE04F); }
+.balloon.popped { pointer-events: none; animation-play-state: paused; }
+.balloon.popped svg, .balloon.popped span { animation: popOut .3s ease-out forwards; }
+@keyframes popOut { to { transform: scale(1.5); opacity: 0; } }
+.boom { position: absolute; z-index: 3; font-family: var(--f-display); color: #B3261E; font-size: 1.5rem; pointer-events: none; animation: boom .9s ease-out forwards; }
+@keyframes boom { from { transform: scale(.6); opacity: 1; } to { transform: scale(1.4) translateY(-20px); opacity: 0; } }
+.gm-top { display: grid; grid-template-columns: 220px 1fr; gap: 20px; align-items: center; }
+.gm-top > * { min-width: 0; }
+
+/* game4 lamps */
+.lamps { display: flex; gap: 10px; justify-content: center; margin-bottom: 14px; }
+.lamps svg { width: 52px; height: 64px; transition: transform .3s; }
+.lamps svg .glass { fill: #E6E2EA; transition: fill .4s; }
+.lamps svg.on .glass { fill: #FFE04F; }
+.lamps svg.on { transform: translateY(-4px); filter: drop-shadow(0 0 10px #FFE04F); }
+.lamps svg .ray { opacity: 0; transition: opacity .4s; }
+.lamps svg.on .ray { opacity: 1; }
+
+/* pager & footer */
+.pager { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-top: 28px; }
+.pager .pg-pos { color: var(--muted); font-weight: 700; font-variant-numeric: tabular-nums; }
+.pager .btn[disabled] { visibility: hidden; }
+footer { margin-top: 56px; padding-block: 24px 44px; color: var(--muted); font-size: 1rem; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 12px; border-top: 2px solid var(--line); }
+footer a { color: var(--navy); }
+
+@media (max-width: 960px) { .strengths { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 860px) {
+  .hero, .gm, .files, .rules { grid-template-columns: 1fr; }
+  .hero-grid { max-width: 460px; }
+  .shine { grid-template-columns: 1fr; }
+  .strengths { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 560px) {
+  .db { padding: 44px 18px 24px; border-radius: 28px; }
+  .tag { font-size: 1.15rem; left: 16px; padding: 6px 18px; }
+  .file { grid-template-columns: 1fr; }
+  .file .ph { max-width: 220px; }
+  .strengths { grid-template-columns: 1fr; }
+  .choices.two { grid-template-columns: 1fr; }
+  .gm-top { grid-template-columns: 1fr; }
+  .gm-top .gm-art { max-width: 280px; }
+  .sky { --sky: 320px; }
+}
+/* 手機橫放：高度很矮時保留雙欄、縮小留白 */
+@media (orientation: landscape) and (max-height: 520px) {
+  body { font-size: 1.08rem; }
+  .top { position: static; }
+  .top .wrap { padding-block: 4px; }
+  .nav a { font-size: .98rem; padding: 2px 10px; }
+  .hero { grid-template-columns: 1.3fr 1fr; padding-block: 12px; gap: 18px; }
+  .hero h1 { margin-top: 26px; font-size: 2.4rem; }
+  .hero-grid { max-width: none; }
+  .gm { grid-template-columns: 34% 1fr; gap: 16px; }
+  .section-head { margin-bottom: 14px; }
+  .section-head h2 { font-size: 1.4rem; }
+  .section-head p { font-size: 1rem; }
+  .files { grid-template-columns: 1fr 1fr; gap: 14px; }
+  .file { grid-template-columns: 1fr; }
+  .file .ph { max-width: 160px; }
+  .rules { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .rule svg { width: 56px; height: 56px; }
+  .strengths { grid-template-columns: repeat(5, 1fr); gap: 8px; }
+  .str svg { width: 44px; height: 44px; }
+  .shine { grid-template-columns: repeat(3, 1fr); }
+  main > section.page { margin-top: 36px; }
+  .db { padding: 38px 20px 20px; border-radius: 28px; }
+  .tag { font-size: 1.15rem; }
+  .gm-q { font-size: 1.2rem; }
+  .choices { gap: 6px; margin-top: 8px; }
+  .choices button { padding: 5px 10px; font-size: 1.02rem; grid-template-columns: 30px 1fr; }
+  .choices button .k { width: 30px; height: 30px; }
+  .choices.names { grid-template-columns: 1fr 1fr; }
+  .choices.names button { font-size: 1.1rem; }
+  .choices.big button { padding: 8px; font-size: 1.2rem; }
+  .choices.big button svg { width: 32px; height: 32px; }
+  .gm-top { grid-template-columns: 170px 1fr; gap: 14px; }
+  .sky { --sky: 230px; margin-top: 8px; }
+  .balloon { width: 128px; }
+  .balloon span b { font-size: 1.15rem; }
+  .lamps svg { width: 36px; height: 44px; }
+  .fb-box { padding: 8px 14px; font-size: 1rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  .balloon { top: auto; bottom: 10%; }
+}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-star" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" fill="#FFE04F" stroke="#141B7A" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-star-off" viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.1 6.6.8-4.9 4.6 1.3 6.6L12 17.3 6.1 20.6l1.3-6.6L2.5 9.4l6.6-.8z" fill="#fff" stroke="#9A93A6" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+    <symbol id="i-spk" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a7.5 7.5 0 0 1 0 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-pen" viewBox="0 0 24 24"><path d="M4 20l1-5L15.5 4.5a2 2 0 0 1 3 0l1 1a2 2 0 0 1 0 3L9 19z" fill="#fff" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="M13 7l4 4" stroke="currentColor" stroke-width="2"/></symbol>
+  </defs>
+</svg>
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+<div class="toast" id="toast" role="status"><svg aria-hidden="true"><use href="#i-star"/></svg><span id="toast-t">答對了！</span></div>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">名人優勢大解密</div>
+    <nav class="nav" aria-label="章節">
+      <a href="#home">開場</a>
+      <a href="#rules">解密前須知</a>
+      <a href="#guess"><svg class="nst" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg>任務1 猜猜我是誰</a>
+      <a href="#files">名人檔案</a>
+      <a href="#campus">大學裡的優勢</a>
+      <a href="#truth"><svg class="nst" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg>任務2 真相偵探</a>
+      <a href="#balloon"><svg class="nst" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg>任務3 優勢氣球</a>
+      <a href="#glow"><svg class="nst" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-star"/></svg>任務4 支持發光站</a>
+    </nav>
+    <label class="pill" for="rate" title="朗讀語速"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-spk"/></svg><span class="hide-s">語速</span>
+      <select id="rate">
+        <option value="0.6">很慢</option>
+        <option value="0.8">慢</option>
+        <option value="0.95" selected>正常</option>
+        <option value="1.2">快</option>
+        <option value="1.45">很快</option>
+      </select>
+    </label>
+    <button class="pill" type="button" id="sfx" aria-pressed="true" title="答題音效開關"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-spk"/></svg>音效</button>
+    <a class="pill fb fb-link" href="#" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-pen"/></svg>填寫回饋單</a>
+    <div class="score" id="score" aria-live="polite" title="已收集的星星"><svg><use href="#i-star"/></svg><span id="score-n">0</span>&nbsp;/&nbsp;<span id="score-t">20</span></div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="hero page" id="home">
+    <div>
+      <div class="eyebrow">
+        <svg viewBox="0 0 40 40" aria-hidden="true"><path d="M6 16h6l14-8v24l-14-8H6z" fill="#E0457B"/><path d="M10 24l3 9h4l-2-9" fill="#5B6180"/><path d="M31 12l4-3M32 20h5M31 28l4 3" stroke="#FFC400" stroke-width="3" stroke-linecap="round"/></svg>
+        和平校區特殊教育宣導月
+      </div>
+      <div><div class="bubble-title">
+        <span class="t1">看見<span class="q">「星」</span>世界</span>
+        <span class="t2">認識與接納自閉症</span>
+      </div></div>
+      <h1 id="h-title">名人優勢大解密</h1>
+      <p class="hero-lede" id="lede">海報上有四個剪影：電動車創新先驅、風靡全球的經典 IP 作者、奧斯卡史上最年長的影帝，還有電影《雨人》角色的靈感來源。他們是誰？他們有哪些優勢？網路上關於他們和自閉症的說法，哪些是真的？一起來解密，完成四個星任務收集 20 顆星星！</p>
+      <div class="hero-actions">
+        <a class="btn" href="#rules">開始解密</a>
+        <button class="btn ghost" type="button" data-read="#h-title, #lede"><svg aria-hidden="true"><use href="#i-spk"/></svg>朗讀開場</button>
+        <button class="btn ghost" id="reset-all" type="button">全部重新開始</button>
+      </div>
+    </div>
+    <div>
+      <div class="hero-grid" id="hero-grid"></div>
+      <p class="maker">高雄師範大學資源教室製作</p>
+    </div>
+  </section>
+
+  <section class="page" id="rules">
+    <div class="db">
+      <div class="tag">解密前須知</div>
+      <div class="section-head with-spk">
+        <div id="rules-txt">
+          <h2>認識名人之前，先記住三件事</h2>
+          <p>診斷是很私人的健康資訊。這份解密只用本人公開說過、或有可靠報導能查證的資料。</p>
+        </div>
+        <button class="spk" type="button" data-read="#rules-txt, #rules .rule, #rules .why" aria-label="朗讀"><svg aria-hidden="true"><use href="#i-spk"/></svg></button>
+      </div>
+      <div class="rules">
+        <div class="rule">
+          <svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="40" fill="#E3EEFF"/><path d="M28 30h28a6 6 0 0 1 6 6v14a6 6 0 0 1-6 6H44l-10 8v-8h-6a6 6 0 0 1-6-6V36a6 6 0 0 1 6-6z" fill="#fff" stroke="#141B7A" stroke-width="3" stroke-linejoin="round"/><path d="M34 43l6 6 11-12" fill="none" stroke="#1F6E2A" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3>本人說的才算數</h3>
+          <p>只引用本人公開說過、或可查證的資料。網路上「聽說他有自閉症」的文章，不一定是真的。</p>
+        </div>
+        <div class="rule">
+          <svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="40" fill="#FFF3B8"/><path d="M14 52 A30 30 0 0 1 70 52" fill="none" stroke="#E0457B" stroke-width="6" stroke-linecap="round"/><path d="M22 52 A22 22 0 0 1 62 52" fill="none" stroke="#FFC400" stroke-width="6" stroke-linecap="round"/><path d="M30 52 A14 14 0 0 1 54 52" fill="none" stroke="#2E8A3A" stroke-width="6" stroke-linecap="round"/><path d="M38 52 A6 6 0 0 1 46 52" fill="none" stroke="#141B7A" stroke-width="6" stroke-linecap="round"/></svg>
+          <h3>自閉症是一道光譜</h3>
+          <p>每個人的優勢和困難都不一樣。名人的成就，不代表每位自閉症者都有特殊才能。</p>
+        </div>
+        <div class="rule">
+          <svg viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="40" fill="#F8D9C8"/><path d="M42 18l6.4 13.4 14.6 1.8-10.8 10 2.8 14.6L42 50.6l-13 7.2 2.8-14.6-10.8-10 14.6-1.8z" fill="#FFE04F" stroke="#141B7A" stroke-width="3" stroke-linejoin="round"/><rect x="18" y="60" width="48" height="12" rx="6" fill="#fff" stroke="#141B7A" stroke-width="3"/><path d="M26 66h32" stroke="#E0457B" stroke-width="3" stroke-linecap="round" stroke-dasharray="4 4"/></svg>
+          <h3>看優勢，不貼標籤</h3>
+          <p>同學很專注、說話很直接，不代表他就是自閉症。只有專業人員能做診斷，我們欣賞他的優勢就好。</p>
+        </div>
+      </div>
+      <p class="why"><b>為什麼要這麼小心？</b>解密時我們會發現，四位名人裡只有一位是本人明確公開說過，另外三位各有不同的情況。分辨「本人說的」和「網路傳的」，也是認識自閉症的重要一課。</p>
+    </div>
+  </section>
+
+  <section class="page" id="guess">
+    <div class="db">
+      <div class="tag">星任務 1・猜猜我是誰</div>
+      <div class="section-head">
+        <h2>看線索，讓剪影現身！</h2>
+        <p>5 題單選，不限時。選對了，剪影就會變成真面目；選錯了可以再選一次。</p>
+      </div>
+      <div id="guess-box"></div>
+    </div>
+  </section>
+
+  <section class="page" id="files">
+    <div class="db">
+      <div class="tag">名人檔案</div>
+      <div class="section-head">
+        <h2>四位名人的優勢與真相檢查</h2>
+        <p>每張檔案都有一個「真相檢查」標章，說明他和自閉症的關係，是本人說的，還是網路傳的。</p>
+      </div>
+      <div class="files" id="file-list"></div>
+    </div>
+  </section>
+
+  <section class="page" id="campus">
+    <div class="db">
+      <div class="tag">大學裡的優勢</div>
+      <div class="section-head with-spk">
+        <div id="campus-txt">
+          <h2>這些優勢，在大學裡也看得到</h2>
+          <p>不少自閉症者在這五個方面有亮眼的表現。放在對的位置，優勢就會發光。</p>
+        </div>
+        <button class="spk" type="button" data-read="#campus-txt, #campus .str" aria-label="朗讀"><svg aria-hidden="true"><use href="#i-spk"/></svg></button>
+      </div>
+      <div class="strengths" id="str-list"></div>
+      <p class="note"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="#FFE04F" stroke="#141B7A" stroke-width="1.6"/><path d="M12 7v6M12 16.5v.5" stroke="#141B7A" stroke-width="2.4" stroke-linecap="round"/></svg><span><b>小提醒：</b>這些是「可能」出現的優勢，不是每位自閉症者都有，也不是只有自閉症者才有。每個人都要用心認識。</span></p>
+      <div class="shine" id="shine-txt">
+        <div><h4>依專長分工</h4>小組作業時，請同學負責他擅長的部分，例如整理資料、檢查細節、寫程式。</div>
+        <div><h4>變動提早說</h4>時間、地點、分工有改變時，盡早用文字清楚通知，減少突然的壓力。</div>
+        <div><h4>欣賞直接的提醒</h4>聽到很直接的意見，先看內容對不對。他通常是在幫忙，不是在挑剔。</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="page" id="truth">
+    <div class="db">
+      <div class="tag">星任務 2・真相偵探</div>
+      <div class="section-head">
+        <h2>這句話可以這樣說嗎？</h2>
+        <p>5 則網路貼文，判斷「可以這樣說」還是「要修正」。答錯可以再選一次。</p>
+      </div>
+      <div id="truth-box"></div>
+    </div>
+  </section>
+
+  <section class="page" id="balloon">
+    <div class="db">
+      <div class="tag">星任務 3・優勢氣球</div>
+      <div class="section-head">
+        <h2>這位同學展現了哪一種優勢？</h2>
+        <p>5 個大學情境，看完點破寫著正確優勢的氣球。不限時，點錯的氣球會破掉，再選一次就好。</p>
+      </div>
+      <div id="balloon-box"></div>
+    </div>
+  </section>
+
+  <section class="page" id="glow">
+    <div class="db">
+      <div class="tag">星任務 4・支持發光站</div>
+      <div class="section-head">
+        <h2>選出友善的做法，點亮優勢燈！</h2>
+        <p>每答對一題亮一盞燈，5 盞全亮就完成解密。</p>
+      </div>
+      <div class="lamps" id="lamps" aria-hidden="true"></div>
+      <div id="glow-box"></div>
+    </div>
+  </section>
+
+  <nav class="pager" aria-label="上一頁與下一頁">
+    <button class="btn ghost" type="button" id="pg-prev">‹ 上一頁</button>
+    <span class="pg-pos" id="pg-pos"></span>
+    <button class="btn" type="button" id="pg-next">下一頁 ›</button>
+  </nav>
+</main>
+
+<footer class="wrap">
+  <span>資料來源：NBC《週六夜現場》2021 年 5 月節目；Video Games Chronicle 2022 年 3 月報導（DidYouKnowGaming 調查與 Game Freak 回應）；Daily Mail 2017 年、The Sunday Times 2025 年霍普金斯訪談；英文維基百科「Kim Peek」條目。</span>
+  <span>高雄師範大學資源教室製作</span>
+</footer>
+
+<script>
+(function () {
+  /* 回饋單連結：拿到網址後貼在引號裡即可 */
+  const FEEDBACK_URL = "";
+
+  const $ = (s, r = document) => r.querySelector(s);
+  const NAVY = "#141B7A", PINK = "#E0457B", SKIN = "#F5C6A5";
+  const FONT = "Huninn, 'Noto Sans TC', sans-serif";
+
+  /* ---------- 星星計分 ---------- */
+  const TOTAL = 20;
+  let earned = new Set();
+  $("#score-t").textContent = TOTAL;
+  function addStar(id) {
+    if (earned.has(id)) return;
+    earned.add(id);
+    $("#score-n").textContent = earned.size;
+    const s = $("#score");
+    s.classList.remove("pop"); void s.offsetWidth; s.classList.add("pop");
+  }
+
+  /* ---------- 音效 ---------- */
+  let sfxOn = true, actx = null;
+  function ctx() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; } catch (e) { return null; } }
+  function tone(c, f, t0, dur, type, vol) {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, c.currentTime + t0);
+    g.gain.setValueAtTime(0.0001, c.currentTime + t0);
+    g.gain.exponentialRampToValueAtTime(vol, c.currentTime + t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t0 + dur);
+    o.connect(g).connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + dur + 0.05);
+  }
+  function sfx(kind) {
+    if (!sfxOn) return;
+    const c = ctx(); if (!c) return;
+    if (kind === "no") { tone(c, 220, 0, .22, "sawtooth", .08); tone(c, 175, .16, .3, "sawtooth", .08); }
+    else if (kind === "pop") { tone(c, 900, 0, .06, "square", .12); tone(c, 300, .03, .12, "triangle", .15); }
+    else if (kind === "stamp") { tone(c, 120, 0, .12, "square", .2); }
+    else if (kind === "tap") { tone(c, 520, 0, .08, "sine", .12); }
+  }
+  function cheerSound() {
+    if (!sfxOn) return;
+    const c = ctx(); if (!c) return;
+    [523, 659, 784, 1047].forEach((f, i) => tone(c, f, i * .09, i === 3 ? .5 : .14, "triangle", .22));
+    const len = Math.floor(c.sampleRate * 2.2), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 + 0.5 * Math.sin(i / c.sampleRate * 2 * Math.PI * (7 + Math.random())));
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1100; bp.Q.value = .7;
+    const g = c.createGain(), t = c.currentTime;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.28, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.1);
+    src.connect(bp).connect(g).connect(c.destination); src.start(t); src.stop(t + 2.2);
+    for (let k = 0; k < 5; k++) {
+      const o = c.createOscillator(), og = c.createGain(), t0 = t + 0.15 + Math.random() * .6, f0 = 380 + Math.random() * 260;
+      o.type = "sawtooth"; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f0 * 1.5, t0 + .35);
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+      og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.035, t0 + .05); og.gain.exponentialRampToValueAtTime(0.0001, t0 + .5);
+      o.connect(lp).connect(og).connect(c.destination); o.start(t0); o.stop(t0 + .55);
+    }
+  }
+  let confettiRun = 0;
+  function confetti() {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = $("#confetti"), g = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+    const W = innerWidth, H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cols = ["#E0457B", "#FFE04F", "#141B7A", "#2E8A3A", "#F3835E", "#7FB2F0"];
+    const ps = Array.from({ length: 120 }, (_, i) => {
+      const fromLeft = i % 2 === 0;
+      return { x: fromLeft ? -10 : W + 10, y: H * (.55 + Math.random() * .3), vx: (fromLeft ? 1 : -1) * (4 + Math.random() * 7), vy: -(9 + Math.random() * 9), r: 5 + Math.random() * 6, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: cols[i % cols.length], star: i % 5 === 0 };
+    });
+    const id = ++confettiRun, start = performance.now();
+    (function frame(now) {
+      if (id !== confettiRun) return;
+      const el = now - start;
+      g.clearRect(0, 0, W, H);
+      if (el > 3000) return;
+      g.globalAlpha = el > 2300 ? Math.max(0, (3000 - el) / 700) : 1;
+      for (const p of ps) {
+        p.vy += .3; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c;
+        if (p.star) { g.beginPath(); for (let k = 0; k < 10; k++) { const rr = k % 2 ? p.r * .45 : p.r * 1.3, an = k * Math.PI / 5 - Math.PI / 2; g.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } g.closePath(); g.fill(); }
+        else g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2);
+        g.restore();
+      }
+      requestAnimationFrame(frame);
+    })(start);
+  }
+  const PRAISE = ["答對了！", "太棒了！", "解密成功！", "好厲害！", "完全正確！"];
+  function toast(msg, info) {
+    const t = $("#toast");
+    $("#toast-t").textContent = msg;
+    t.classList.toggle("info", !!info);
+    t.classList.remove("show"); void t.offsetWidth; t.classList.add("show");
+  }
+  function win(msg) {
+    cheerSound(); confetti();
+    toast(msg || PRAISE[Math.floor(Math.random() * PRAISE.length)]);
+  }
+  $("#sfx").onclick = () => { sfxOn = !sfxOn; $("#sfx").setAttribute("aria-pressed", sfxOn); if (sfxOn) sfx("tap"); };
+
+  /* ---------- 回饋單 ---------- */
+  document.querySelectorAll(".fb-link").forEach(a => {
+    if (FEEDBACK_URL) a.href = FEEDBACK_URL;
+    else a.addEventListener("click", e => { e.preventDefault(); toast("回饋單連結準備中", true); });
+  });
+
+  /* ---------- 小喇叭朗讀 ---------- */
+  const synth = window.speechSynthesis;
+  let speakingBtn = null, zhVoice = null;
+  function pickVoice() {
+    if (!synth) return;
+    const vs = synth.getVoices();
+    zhVoice = vs.find(v => /zh[-_]TW/i.test(v.lang)) || vs.find(v => /zh[-_](HK|Hant)/i.test(v.lang)) || vs.find(v => /^zh/i.test(v.lang)) || null;
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+  try { const r = localStorage.getItem("star-rate"); if (r && $(`#rate option[value="${r}"]`)) $("#rate").value = r; } catch (e) {}
+  $("#rate").addEventListener("change", () => {
+    try { localStorage.setItem("star-rate", $("#rate").value); } catch (e) {}
+    const b = speakingBtn;
+    if (b) { stopSpeak(); b.click(); }
+  });
+  function stopSpeak() { if (synth) synth.cancel(); if (speakingBtn) speakingBtn.classList.remove("on"); speakingBtn = null; }
+  function speak(text, btn) {
+    if (!synth || !window.SpeechSynthesisUtterance) { if (btn) btn.title = "這個瀏覽器不支援朗讀"; return; }
+    if (speakingBtn === btn) { stopSpeak(); return; }
+    stopSpeak();
+    const u = new SpeechSynthesisUtterance(text.replace(/[✓]/g, "").replace(/\s+/g, " "));
+    u.lang = "zh-TW"; if (zhVoice) u.voice = zhVoice; u.rate = +$("#rate").value || 0.95;
+    u.onend = u.onerror = () => { if (speakingBtn === btn) stopSpeak(); };
+    speakingBtn = btn; if (btn) btn.classList.add("on");
+    synth.speak(u);
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-read]");
+    if (!b) return;
+    const text = Array.from(document.querySelectorAll(b.dataset.read)).map(el => el.innerText).join("。");
+    speak(text, b);
+  });
+  const spkBtn = sel => `<button class="spk" type="button" data-read="${sel}" aria-label="朗讀"><svg aria-hidden="true"><use href="#i-spk"/></svg></button>`;
+
+  /* ---------- 插圖：人物 ---------- */
+  function toon(x, y, s, o) {
+    const hair = o.hair || "#3A2A2A", mood = o.mood || "smile";
+    const mouth = { smile: "M-7 11 Q0 17 7 11", flat: "M-6 12 L6 12", worry: "M-7 14 Q0 8 7 14", open: "M-5 10 Q0 18 5 10 Z" }[mood];
+    let hairPath;
+    if (o.style === "old") hairPath = `<path d="M-27 4 Q-30 -22 -14 -26 Q-6 -16 0 -27 Q8 -18 14 -26 Q30 -22 27 4 Q24 -10 18 -12 Q0 -6 -18 -12 Q-24 -10 -27 4Z" fill="${hair}"/>`;
+    else if (o.style === "side") hairPath = `<path d="M-27 2 Q-30 -32 4 -31 Q30 -30 27 2 Q24 -14 12 -18 Q-4 -10 -18 -16 Q-24 -10 -27 2Z" fill="${hair}"/>`;
+    else hairPath = `<path d="M-26 -1 Q-27 -31 0 -30 Q27 -31 26 -1 Q20 -19 0 -18 Q-17 -19 -26 -1Z" fill="${hair}"/>`;
+    const glasses = o.glasses ? `<g fill="none" stroke="${NAVY}" stroke-width="2.4"><circle cx="-9" cy="2" r="7"/><circle cx="9" cy="2" r="7"/><path d="M-2 2h4"/></g>` : "";
+    const beard = o.beard ? `<path d="M-20 8 Q-18 30 0 30 Q18 30 20 8 Q14 20 0 20 Q-14 20 -20 8Z" fill="${o.beard}"/>` : "";
+    const brows = o.brows ? `<path d="M-13 -7 l8 -1 M5 -8 l8 1" stroke="${hair}" stroke-width="3" stroke-linecap="round"/>` : "";
+    const collar = o.tie ? `<path d="M-8 36 L0 46 L8 36" fill="#fff"/><path d="M-3 44 L0 64 L3 44Z" fill="${o.tie}"/>` : "";
+    return `<g transform="translate(${x} ${y}) scale(${s})">
+      <path d="M-36 92 Q-36 36 0 36 Q36 36 36 92 Z" fill="${o.shirt}"/>${collar}
+      <rect x="-7" y="22" width="14" height="16" fill="${SKIN}"/>
+      <circle r="26" fill="${SKIN}"/>
+      ${hairPath}${brows}
+      <circle cx="-9" cy="2" r="2.8" fill="${NAVY}"/><circle cx="9" cy="2" r="2.8" fill="${NAVY}"/>
+      <ellipse cx="-16" cy="11" rx="5" ry="3.2" fill="#F49AB2" opacity=".8"/><ellipse cx="16" cy="11" rx="5" ry="3.2" fill="#F49AB2" opacity=".8"/>
+      ${beard}
+      <path d="${mouth}" fill="${mood === "open" ? NAVY : "none"}" stroke="${NAVY}" stroke-width="2.6" stroke-linecap="round"/>
+      ${glasses}
+    </g>`;
+  }
+  function shadow(x, y, s) {
+    return `<g transform="translate(${x} ${y}) scale(${s})" fill="#111">
+      <path d="M-40 96 Q-42 38 0 36 Q42 38 40 96 Z"/><rect x="-9" y="18" width="18" height="22"/><ellipse rx="25" ry="29"/>
+      </g><text x="${x + 4 * s}" y="${y + 66 * s}" text-anchor="middle" font-family="${FONT}" font-size="${58 * s}" fill="#fff">?</text>`;
+  }
+
+  /* ---------- 插圖：道具 ---------- */
+  const PROP = {
+    car: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s}) rotate(-8)"><path d="M-44 6 Q-44 -8 -30 -10 L-18 -26 Q-12 -32 4 -32 L18 -32 Q30 -32 36 -14 L44 -10 Q50 -6 48 6Z" fill="#FAFAF4" stroke="${NAVY}" stroke-width="3" stroke-linejoin="round"/><path d="M-14 -24 L-4 -24 L-4 -12 L-24 -12Z M2 -24 L16 -24 Q24 -24 28 -12 L2 -12Z" fill="#C9DCF3" stroke="${NAVY}" stroke-width="2"/><path d="M-36 -2h80" stroke="${PINK}" stroke-width="2"/><circle cx="-24" cy="8" r="10" fill="#555" stroke="${NAVY}" stroke-width="3"/><circle cx="28" cy="8" r="10" fill="#555" stroke="${NAVY}" stroke-width="3"/><circle cx="-24" cy="8" r="3.5" fill="#ddd"/><circle cx="28" cy="8" r="3.5" fill="#ddd"/></g>`,
+    rocket: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s}) rotate(25)"><path d="M0 -30 C12 -18 13 0 10 16 H-10 C-13 0 -12 -18 0 -30z" fill="#fff" stroke="${NAVY}" stroke-width="3"/><circle cy="-6" r="5" fill="#C9DCF3" stroke="${NAVY}" stroke-width="2.5"/><path d="M-10 6 L-18 20 L-10 16z M10 6 L18 20 L10 16z" fill="${PINK}" stroke="${NAVY}" stroke-width="2"/><path d="M-6 16 L0 32 L6 16z" fill="#FFC400"/></g>`,
+    ball: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><circle r="30" fill="#fff" stroke="#222" stroke-width="4"/><path d="M-30 0 A30 30 0 0 1 30 0Z" fill="#E0394F" stroke="#222" stroke-width="4"/><path d="M-30 0h60" stroke="#222" stroke-width="5"/><circle r="9" fill="#fff" stroke="#222" stroke-width="4"/><circle r="3.5" fill="#222"/></g>`,
+    bug: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><g stroke="${NAVY}" stroke-width="3" stroke-linecap="round"><path d="M-14 -6l-12 -8M-15 4h-14M-12 14l-12 8M14 -6l12 -8M15 4h14M12 14l12 8M-5 -20l-8 -12M5 -20l8 -12"/></g><ellipse cy="4" rx="16" ry="20" fill="#2E8A3A" stroke="${NAVY}" stroke-width="3"/><path d="M0 -14v36" stroke="${NAVY}" stroke-width="2.5"/><circle cy="-18" r="9" fill="#1F4F2A" stroke="${NAVY}" stroke-width="3"/></g>`,
+    net: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M0 0 L46 -60" stroke="#B5803F" stroke-width="5" stroke-linecap="round"/><ellipse cx="54" cy="-74" rx="18" ry="14" fill="rgba(255,255,255,.7)" stroke="${NAVY}" stroke-width="3"/><path d="M40 -66 Q50 -40 66 -66" fill="rgba(255,255,255,.7)" stroke="${NAVY}" stroke-width="2.5"/></g>`,
+    trophy: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><rect x="-20" y="40" width="40" height="12" rx="2" fill="#333"/><rect x="-14" y="30" width="28" height="12" fill="#444"/><g fill="#F5B820" stroke="#9A6A00" stroke-width="2"><circle cy="-38" r="8"/><path d="M-9 -28 Q-12 -10 -8 6 L-6 30 H6 L8 6 Q12 -10 9 -28Z"/><path d="M-9 -24 Q-4 -14 0 -16 Q4 -14 9 -24" fill="none"/></g></g>`,
+    book: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s}) rotate(-12)"><path d="M-44 -4 Q-22 -16 0 -6 Q22 -16 44 -4 L44 28 Q22 18 0 28 Q-22 18 -44 28Z" fill="#B8743A" stroke="#7A4A20" stroke-width="2"/><path d="M-40 -8 Q-20 -20 0 -10 V22 Q-20 12 -40 22Z" fill="#FBF0D6" stroke="#7A4A20" stroke-width="2"/><path d="M40 -8 Q20 -20 0 -10 V22 Q20 12 40 22Z" fill="#FBF0D6" stroke="#7A4A20" stroke-width="2"/><path d="M-32 -6 Q-18 -14 -6 -6 M-32 2 Q-18 -6 -6 2 M-32 10 Q-18 2 -6 10 M6 -6 Q18 -14 32 -6 M6 2 Q18 -6 32 2 M6 10 Q18 2 32 10" fill="none" stroke="#C9A877" stroke-width="2"/></g>`,
+    film: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><circle r="24" fill="#333" stroke="${NAVY}" stroke-width="3"/><g fill="#ddd"><circle cy="-12" r="6"/><circle cy="12" r="6"/><circle cx="-12" r="6"/><circle cx="12" r="6"/></g><circle r="3" fill="#ddd"/></g>`,
+    mask: (x, y, s = 1) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-22 -18 H22 Q24 10 0 22 Q-24 10 -22 -18Z" fill="#fff" stroke="${NAVY}" stroke-width="3"/><circle cx="-9" cy="-6" r="4" fill="${NAVY}"/><circle cx="9" cy="-6" r="4" fill="${NAVY}"/><path d="M-8 8 Q0 14 8 8" fill="none" stroke="${NAVY}" stroke-width="3" stroke-linecap="round"/></g>`,
+  };
+
+  /* ---------- 四位名人 ---------- */
+  const P = {
+    musk: { name: "伊隆．馬斯克", label: "電動車創新先驅", tone: "var(--t-musk)", bg: "#C9DCF3",
+      look: { hair: "#5A3A26", style: "side", shirt: "#2B2F3A", tie: "#141B7A", brows: true },
+      prop: () => PROP.car(70, 70, .85) + PROP.rocket(212, 54, .9) },
+    tajiri: { name: "田尻智", label: "風靡全球的經典 IP 作者", tone: "var(--t-tajiri)", bg: "#FDECA6",
+      look: { hair: "#1E1A1A", style: "short", shirt: "#2E8A3A", glasses: true },
+      prop: () => PROP.ball(56, 82, .95) + PROP.bug(214, 64, .8) },
+    hopkins: { name: "安東尼．霍普金斯", label: "奧斯卡史上最年長的影帝", tone: "var(--t-hopkins)", bg: "#D6ECDC",
+      look: { hair: "#E8E8EE", style: "old", shirt: "#3B3550", tie: "#9A1E2C", beard: "#E8E8EE" },
+      prop: () => PROP.trophy(206, 152, 1) },
+    peek: { name: "金．皮克", label: "《雨人》角色的靈感來源", tone: "var(--t-peek)", bg: "#F8D9C8",
+      look: { hair: "#9A9AA6", style: "side", shirt: "#4E6FB0", glasses: false, beard: "#9A9AA6" },
+      prop: () => PROP.book(80, 170, .9) },
+  };
+  const ORDER = ["musk", "tajiri", "hopkins", "peek"];
+  function portrait(id, revealed, label) {
+    const p = P[id];
+    const fig = revealed ? toon(140, 92, 1.55, p.look) : shadow(140, 92, 1.55);
+    return `<svg viewBox="0 0 260 240" width="260" height="240" role="img" aria-label="${revealed ? p.name : "剪影：" + p.label}"><rect width="260" height="240" fill="${p.bg}"/>${fig}${p.prop()}${label ? "" : ""}</svg>`;
+  }
+
+  /* 開場四格 */
+  $("#hero-grid").innerHTML = ORDER.map(id => `<div class="mini">${portrait(id, false)}<div class="lab">${P[id].label}</div></div>`).join("");
+
+  /* ---------- 名人檔案 ---------- */
+  const FILES = [
+    { id: "musk", role: "電動車公司特斯拉執行長、太空公司 SpaceX 創辦人", badge: ["ok", "✓ 本人公開說過"],
+      fact: "2021 年 5 月主持美國喜劇節目《週六夜現場》時，他在開場說自己有亞斯伯格症（現在已歸入自閉症類群）。",
+      str: "對感興趣的領域非常投入。他常說自己用「第一原理」思考，把問題拆到最基本，再重新組合出新做法。",
+      src: "來源：NBC《週六夜現場》2021 年 5 月 8 日節目" },
+    { id: "tajiri", role: "《寶可夢》創作者、遊戲公司 Game Freak 創辦人", badge: ["no", "✕ 網路傳言，已被澄清"],
+      fact: "網路上長期流傳他有自閉症或亞斯伯格症，但查不到他本人這樣說過。2022 年有媒體追查，Game Freak 回應他沒有自閉症或亞斯伯格症。",
+      str: "從小熱愛抓昆蟲、觀察昆蟲，有「蟲博士」的外號。他把收集、觀察、交換的樂趣，變成風靡全球的遊戲。",
+      src: "為什麼還放進來？他的故事提醒我們：轉傳前先查證。來源：Video Games Chronicle，2022 年 3 月" },
+    { id: "hopkins", role: "英國演員，2021 年以《父親》獲奧斯卡最佳男主角，當時 83 歲", badge: ["warn", "! 本人說法有變化"],
+      fact: "2017 年受訪時說自己在晚年被診斷為亞斯伯格症；2025 年談新書時又說，是太太認為他是，他自己並不相信這類標籤。",
+      str: "他形容自己「對數字著迷、對細節著迷，喜歡井然有序，也喜歡背東西」，還說自己看人的方式不同，喜歡把角色拆開來研究。",
+      src: "來源：Daily Mail 2017 年訪談；The Sunday Times 2025 年訪談" },
+    { id: "peek", role: "美國人（1951–2009），電影《雨人》（1988）主角雷蒙的靈感來源", badge: ["diff", "≠ 電影角色和本人不同"],
+      fact: "電影把角色設定為自閉症。皮克早年曾被診斷為自閉症，後來研究者認為他比較可能是 FG 症候群，而且天生沒有連接左右腦的胼胝體。",
+      str: "據報導能記住至少一萬二千本書的內容，閱讀時左眼看左頁、右眼看右頁。不過扣釦子這類動作需要爸爸幫忙，強項和需要協助的地方可以同時存在。",
+      src: "來源：英文維基百科「Kim Peek」條目" },
+  ];
+  $("#file-list").innerHTML = FILES.map((f, i) => {
+    const p = P[f.id];
+    return `<article class="file" id="file-${i}" style="background:${p.tone}">
+      <div class="ph">${portrait(f.id, true)}</div>
+      <div>
+        <div class="with-spk"><div><h3>${p.name}</h3><p class="role">${p.label}｜${f.role}</p></div>${spkBtn("#file-" + i)}</div>
+        <span class="badge ${f.badge[0]}">真相檢查　${f.badge[1]}</span>
+        <dl><dt>和自閉症的關係</dt><dd>${f.fact}</dd><dt>他的優勢</dt><dd>${f.str}</dd></dl>
+        <p class="src">${f.src}</p>
+      </div>
+    </article>`;
+  }).join("");
+
+  /* ---------- 大學裡的優勢 ---------- */
+  const ICON = {
+    focus: `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#E3EEFF"/><circle cx="32" cy="32" r="18" fill="#fff" stroke="${NAVY}" stroke-width="3"/><circle cx="32" cy="32" r="9" fill="${PINK}"/><path d="M50 14 L34 30" stroke="${NAVY}" stroke-width="4" stroke-linecap="round"/><path d="M46 10 l6 0 l0 6" fill="none" stroke="${NAVY}" stroke-width="3"/></svg>`,
+    detail: `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#FFF3B8"/><circle cx="28" cy="28" r="14" fill="#fff" stroke="${NAVY}" stroke-width="4"/><path d="M38 38 L50 50" stroke="${NAVY}" stroke-width="6" stroke-linecap="round"/><path d="M22 28h12M28 22v12" stroke="${PINK}" stroke-width="3" stroke-linecap="round"/></svg>`,
+    system: `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#D6ECDC"/><rect x="24" y="12" width="16" height="12" rx="3" fill="#fff" stroke="${NAVY}" stroke-width="3"/><rect x="10" y="40" width="16" height="12" rx="3" fill="#fff" stroke="${NAVY}" stroke-width="3"/><rect x="38" y="40" width="16" height="12" rx="3" fill="#FFE04F" stroke="${NAVY}" stroke-width="3"/><path d="M32 24v8M18 40v-8h28v8" fill="none" stroke="${NAVY}" stroke-width="3"/></svg>`,
+    honest: `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#F8D9C8"/><path d="M14 18h36a5 5 0 0 1 5 5v14a5 5 0 0 1-5 5H32l-10 9v-9h-8a5 5 0 0 1-5-5V23a5 5 0 0 1 5-5z" fill="#fff" stroke="${NAVY}" stroke-width="3" stroke-linejoin="round"/><path d="M32 23v10M32 37v1" stroke="${PINK}" stroke-width="4" stroke-linecap="round"/></svg>`,
+    routine: `<svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="30" fill="#EFE6EE"/><circle cx="32" cy="32" r="19" fill="#fff" stroke="${NAVY}" stroke-width="3"/><path d="M32 20v12l8 6" fill="none" stroke="${PINK}" stroke-width="4" stroke-linecap="round"/><path d="M50 14a26 26 0 0 1 6 12" fill="none" stroke="${NAVY}" stroke-width="3" stroke-linecap="round"/><path d="M52 26l4 0 1-5" fill="none" stroke="${NAVY}" stroke-width="3"/></svg>`,
+  };
+  const STR = [
+    { k: "focus", n: "專注熱情", d: "對喜歡的主題可以研究很久、很深。", eg: "像田尻智從小熱愛昆蟲。", uni: "專題研究、社團專長、長時間實驗" },
+    { k: "detail", n: "細節記憶", d: "容易注意到別人沒發現的細節，記得很牢。", eg: "像霍普金斯說自己對細節著迷。", uni: "校對報告、整理數據、實驗紀錄" },
+    { k: "system", n: "系統思考", d: "喜歡找規則，把複雜的問題一步步拆解。", eg: "像馬斯克說的「第一原理」。", uni: "寫程式、統計分析、流程設計" },
+    { k: "honest", n: "誠實直接", d: "說話直接、不拐彎，常能點出真正的問題。", eg: "", uni: "小組討論中指出錯誤、檢查漏洞" },
+    { k: "routine", n: "規律堅持", d: "照著固定步驟做事，能長時間穩定投入。", eg: "", uni: "按時完成作業、長期練習、照表讀書" },
+  ];
+  const SN = Object.fromEntries(STR.map(s => [s.k, s.n]));
+  $("#str-list").innerHTML = STR.map(s => `<div class="str">${ICON[s.k]}<h3>${s.n}</h3><p>${s.d}${s.eg ? "<br>" + s.eg : ""}</p><p class="uni"><b>大學裡：</b>${s.uni}</p></div>`).join("");
+
+  /* ---------- 情境插圖 ---------- */
+  const PLACE = {
+    class: `<rect width="360" height="240" fill="#E3EEFF"/><rect x="40" y="22" width="200" height="90" rx="6" fill="#2F5A45" stroke="#8A6A40" stroke-width="6"/><path d="M60 50h80M60 72h120" stroke="#fff" stroke-width="3" opacity=".6" stroke-linecap="round"/><rect y="200" width="360" height="40" fill="#C9B8A8"/>`,
+    lab: `<rect width="360" height="240" fill="#E5F5E2"/><rect x="0" y="150" width="360" height="12" fill="#7A86C9"/><rect y="200" width="360" height="40" fill="#BFCBD9"/>`,
+    field: `<rect width="360" height="240" fill="#DDF0FF"/><circle cx="310" cy="40" r="22" fill="#FFE04F"/><path d="M0 170 Q90 140 180 170 T360 165 V240 H0Z" fill="#9BD18B"/>`,
+    room: `<rect width="360" height="240" fill="#F3E9FF"/><rect x="250" y="30" width="80" height="60" rx="6" fill="#fff" stroke="${NAVY}" stroke-width="3"/><path d="M290 30v60M250 60h80" stroke="${NAVY}" stroke-width="2"/><rect y="200" width="360" height="40" fill="#D5C4D3"/>`,
+  };
+  // 書架用書背（固定排列，避免每次重畫亂跳）
+  PLACE.lib = `<rect width="360" height="240" fill="#FFF3DE"/>` + [0, 1, 2].map(r => {
+    const y = 24 + r * 46;
+    const cols = ["#E0457B", "#7FB2F0", "#2E8A3A", "#FFC400", "#7A86C9", "#F3835E"];
+    return Array.from({ length: 13 }, (_, c) => `<rect x="${26 + c * 24}" y="${y - 30 + (c % 3) * 3}" width="18" height="${30 - (c % 3) * 3}" fill="${cols[(c + r) % 6]}" opacity=".75"/>`).join("") + `<rect x="20" y="${y}" width="320" height="6" fill="#B8743A"/>`;
+  }).join("") + `<rect y="200" width="360" height="40" fill="#D9C2A0"/>`;
+  const ITEM = {
+    bug: PROP.bug(250, 120, 1.2) + PROP.net(220, 205, .9),
+    report: `<g transform="translate(232 70)"><rect width="90" height="116" rx="6" fill="#fff" stroke="${NAVY}" stroke-width="3"/><path d="M14 20h62M14 36h62M14 52h40" stroke="${NAVY}" stroke-width="3" stroke-linecap="round"/><rect x="14" y="66" width="62" height="34" fill="#E3EEFF" stroke="${NAVY}" stroke-width="2"/><circle cx="58" cy="82" r="12" fill="none" stroke="#B3261E" stroke-width="4"/></g>`,
+    laptop: `<g transform="translate(220 92)"><path d="M10 80 l10 -70 h90 l-8 70z" fill="#9AA5C9" stroke="${NAVY}" stroke-width="3" stroke-linejoin="round"/><rect x="26" y="20" width="72" height="50" rx="3" fill="#1E2748"/><path d="M34 32h22M40 42h30M40 52h18" stroke="#7FE08A" stroke-width="3" stroke-linecap="round"/><rect y="80" width="120" height="10" rx="5" fill="${NAVY}"/></g>`,
+    chat: `<g transform="translate(206 40)"><rect width="130" height="54" rx="16" fill="#fff" stroke="${NAVY}" stroke-width="3"/><path d="M24 54 l-4 14 16 -14" fill="#fff" stroke="${NAVY}" stroke-width="3" stroke-linejoin="round"/><text x="65" y="35" text-anchor="middle" font-family="${FONT}" font-size="20" fill="#B3261E">預算算錯了</text></g>`,
+    clock: `<g transform="translate(270 70)"><circle r="40" fill="#fff" stroke="${NAVY}" stroke-width="4"/><path d="M0 -26v26l18 10" fill="none" stroke="${PINK}" stroke-width="5" stroke-linecap="round"/><text y="-16" text-anchor="middle" font-size="12" fill="${NAVY}" font-family="${FONT}">8:00</text></g>`,
+    group: "",
+    phone: `<g transform="translate(248 52)"><rect width="70" height="124" rx="12" fill="#1E2748"/><rect x="6" y="14" width="58" height="96" rx="4" fill="#fff"/><rect x="12" y="24" width="44" height="18" rx="6" fill="#E3EEFF"/><rect x="12" y="50" width="38" height="18" rx="6" fill="#FFE04F"/><path d="M18 33h30M18 59h24" stroke="${NAVY}" stroke-width="2.5" stroke-linecap="round"/></g>`,
+    whisper: `<g transform="translate(220 40)"><rect width="120" height="50" rx="16" fill="#fff" stroke="${NAVY}" stroke-width="3"/><text x="60" y="32" text-anchor="middle" font-family="${FONT}" font-size="18" fill="${NAVY}">聽說他好像…</text></g>`,
+  };
+  const SHIRTS = ["#7A86C9", "#2E8A3A", PINK, NAVY, "#F3835E", "#B8743A"];
+  function scene(spec) {
+    const ppl = (spec.people || [{}]).map((o, i, arr) => {
+      const x = arr.length === 1 ? 120 : 80 + i * 90;
+      return toon(x, 118, 1.05, Object.assign({ shirt: SHIRTS[(spec.seed + i) % SHIRTS.length], hair: i % 2 ? "#6A4A2A" : "#2A2020", style: i % 2 ? "side" : "short" }, o));
+    }).join("");
+    return `<svg viewBox="0 0 360 240" width="360" height="240" role="img" aria-label="${spec.label}">${PLACE[spec.place]}${ppl}${ITEM[spec.item] || ""}</svg>`;
+  }
+
+  /* ---------- 新聞貼文插圖（任務 2） ---------- */
+  function post(id, extra) {
+    const p = P[id];
+    return `<svg viewBox="0 0 360 240" width="360" height="240" role="img" aria-label="網路貼文：${p.name}">
+      <rect width="360" height="240" fill="#EFE6EE"/>
+      <rect x="40" y="18" width="280" height="206" rx="18" fill="#fff" stroke="${NAVY}" stroke-width="3"/>
+      <circle cx="70" cy="46" r="14" fill="#C9DCF3"/><rect x="92" y="38" width="90" height="10" rx="5" fill="#C9C2D3"/><rect x="92" y="54" width="50" height="8" rx="4" fill="#E0D8E6"/>
+      <g transform="translate(60 74)"><rect width="110" height="110" rx="12" fill="${p.bg}"/><g transform="scale(.42)">${toon(130, 92, 1.55, p.look)}</g>${extra || ""}</g>
+      <rect x="188" y="84" width="112" height="10" rx="5" fill="#C9C2D3"/><rect x="188" y="104" width="96" height="10" rx="5" fill="#C9C2D3"/><rect x="188" y="124" width="104" height="10" rx="5" fill="#C9C2D3"/><rect x="188" y="144" width="70" height="10" rx="5" fill="#C9C2D3"/>
+      <path d="M60 204h18M110 204h18M160 204h18" stroke="${PINK}" stroke-width="5" stroke-linecap="round"/>
+      <g transform="translate(296 186)"><circle r="22" fill="#fff" stroke="${NAVY}" stroke-width="5"/><path d="M15 15 l16 16" stroke="${NAVY}" stroke-width="7" stroke-linecap="round"/><text y="8" text-anchor="middle" font-family="${FONT}" font-size="24" fill="${PINK}">?</text></g>
+    </svg>`;
+  }
+  const RAIN = `<g transform="translate(70 8)" stroke="#7FB2F0" stroke-width="3" stroke-linecap="round"><path d="M0 0l-4 10M14 4l-4 10M28 0l-4 10"/></g>`;
+  function multiPost() {
+    return `<svg viewBox="0 0 360 240" width="360" height="240" role="img" aria-label="網路貼文：自閉症的人都有超強記憶？">
+      <rect width="360" height="240" fill="#EFE6EE"/><rect x="40" y="18" width="280" height="206" rx="18" fill="#fff" stroke="${NAVY}" stroke-width="3"/>
+      ${PROP.book(130, 110, 1)}
+      <text x="250" y="100" text-anchor="middle" font-family="${FONT}" font-size="48" fill="${PINK}">都？</text>
+      ${[0, 1, 2, 3, 4].map(i => `<g transform="translate(${80 + i * 50} 190) scale(.32)">${toon(0, 0, 1, { shirt: SHIRTS[i], hair: "#2A2020", style: i % 2 ? "side" : "short" })}</g>`).join("")}
+    </svg>`;
+  }
+
+  /* ---------- 單選題引擎 ---------- */
+  function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  const KEYS = ["A", "B", "C", "D"];
+  function game(cfg) {
+    const box = $(cfg.box);
+    const st = { i: 0, first: 0, tried: false };
+    function progress() { return `<div class="progress">${cfg.items.map((_, k) => `<span class="${k < st.i ? "done" : k === st.i ? "now" : ""}"></span>`).join("")}</div>`; }
+    function render() {
+      stopSpeak();
+      if (st.i >= cfg.items.length) return finish();
+      const it = cfg.items[st.i]; st.tried = false;
+      const qid = cfg.id + "-q";
+      const choices = cfg.mode === "balloon" ? "" : `<div class="choices ${cfg.cls || ""}">${it.choices.map((c, k) => `<button type="button" data-k="${c.k}"><span class="k">${cfg.mode === "big" ? c.icon : KEYS[k]}</span><span>${c.html || c.t}</span></button>`).join("")}</div>`;
+      const head = `<p class="q-num">第 ${st.i + 1} 題 / 共 ${cfg.items.length} 題</p><div class="with-spk"><p class="gm-q" id="${qid}">${it.q}</p>${spkBtn("#" + qid + (cfg.mode === "balloon" ? "" : ", " + cfg.box + " .choices"))}</div>`;
+      if (cfg.mode === "balloon") {
+        box.innerHTML = `${progress()}<div class="gm-top"><div class="gm-art">${it.art()}</div><div>${head}</div></div>${sky(it.choices)}<div class="fb-slot"></div>`;
+      } else {
+        box.innerHTML = `${progress()}<div class="gm"><div class="gm-art">${it.art()}</div><div>${head}${choices}<div class="fb-slot"></div></div></div>`;
+      }
+      box.querySelectorAll("[data-k]").forEach(b => b.onclick = () => answer(b.dataset.k, b));
+    }
+    function answer(k, btn) {
+      const it = cfg.items[st.i];
+      if (k !== it.ans) {
+        st.tried = true;
+        sfx(cfg.mode === "balloon" ? "pop" : "no");
+        btn.disabled = true;
+        if (cfg.mode === "balloon") popBalloon(btn, false); else btn.classList.add("wrong");
+        box.querySelector(".fb-slot").innerHTML = `<div class="fb-box no"><span class="verdict">再想想！</span> ${it.hint || "這個不對喔，再選一次。"}</div>`;
+        return;
+      }
+      if (!st.tried) st.first++;
+      addStar(cfg.id + st.i);
+      box.querySelectorAll("[data-k]").forEach(b => b.disabled = true);
+      if (cfg.mode === "balloon") { popBalloon(btn, true); box.querySelector(".sky").classList.add("stop"); }
+      else btn.classList.add("right");
+      if (cfg.onRight) cfg.onRight(st.i, box, it);
+      win(it.praise);
+      const last = st.i === cfg.items.length - 1;
+      const fid = cfg.id + "-fb";
+      box.querySelector(".fb-slot").innerHTML = `<div class="fb-box ok with-spk"><div id="${fid}"><span class="verdict">${it.verdict || "答對了！"}</span> ${it.why}</div>${spkBtn("#" + fid)}</div><div class="row-end"><button class="btn navy" type="button">${last ? "看結果 ›" : "下一題 ›"}</button></div>`;
+      box.querySelector(".row-end .btn").onclick = () => { st.i++; render(); };
+    }
+    function finish() {
+      const n = cfg.items.length;
+      box.innerHTML = `${progress()}<div class="done-box"><div class="stars">${cfg.items.map(() => `<svg aria-hidden="true"><use href="#i-star"/></svg>`).join("")}</div><h3>${cfg.doneTitle}</h3><p>${n} 題全部完成，其中 ${st.first} 題一次就答對。${cfg.doneText || ""}</p><div class="hero-actions"><button class="btn ghost" type="button" data-act="again">再玩一次</button>${cfg.next ? `<a class="btn" href="#${cfg.next}">${cfg.nextText} ›</a>` : `<a class="btn pink fb-end" href="${FEEDBACK_URL || "#"}" target="_blank" rel="noopener">填寫回饋單</a>`}</div></div>`;
+      box.querySelector('[data-act="again"]').onclick = reset;
+      const fe = box.querySelector(".fb-end");
+      if (fe && !FEEDBACK_URL) fe.onclick = e => { e.preventDefault(); toast("回饋單連結準備中", true); };
+      if (cfg.onFinish) cfg.onFinish();
+    }
+    function reset() { st.i = 0; st.first = 0; if (cfg.onReset) cfg.onReset(); render(); }
+    return { reset, render };
+  }
+
+  /* 氣球 */
+  const BCOL = ["#FFB3C7", "#A8D4FF", "#FFE58A", "#B9EBC0", "#D9C2FF"];
+  function sky(choices) {
+    const lanes = [3, 27, 51, 75];
+    const order = shuffle(choices.map((c, i) => ({ c, i })));
+    const balloons = order.map((b, n) => {
+      const dur = 13 + Math.random() * 3, delay = -(n * 0.25 + Math.random() * 0.15) * dur;
+      return `<button type="button" class="balloon" data-k="${b.c.k}" aria-label="${b.c.t}" style="left:${lanes[n]}%;animation-duration:${dur.toFixed(1)}s;animation-delay:${delay.toFixed(1)}s">
+        <svg viewBox="0 0 100 150" aria-hidden="true"><path d="M50 4 C80 4 96 28 96 54 C96 84 72 106 50 110 C28 106 4 84 4 54 C4 28 20 4 50 4Z" fill="${BCOL[n % BCOL.length]}" stroke="${NAVY}" stroke-width="3"/><ellipse cx="30" cy="30" rx="8" ry="14" fill="#fff" opacity=".7" transform="rotate(30 30 30)"/><path d="M44 110 L50 118 L56 110Z" fill="${BCOL[n % BCOL.length]}" stroke="${NAVY}" stroke-width="2.5"/><path d="M50 118 Q42 132 52 148" fill="none" stroke="${NAVY}" stroke-width="2"/></svg>
+        <span><b>${b.c.t}</b></span></button>`;
+    }).join("");
+    return `<div class="sky"><div class="cloud" style="left:8%;top:12%;width:90px;height:28px"></div><div class="cloud" style="left:62%;top:30%;width:120px;height:34px"></div>${balloons}</div>`;
+  }
+  function popBalloon(btn, ok) {
+    const sk = btn.closest(".sky"), r = btn.getBoundingClientRect(), sr = sk.getBoundingClientRect();
+    const b = document.createElement("span");
+    b.className = "boom"; b.textContent = ok ? "答對！" : "啵！";
+    if (ok) b.style.color = "#1F6E2A";
+    b.style.left = (r.left - sr.left + r.width * .2) + "px"; b.style.top = (r.top - sr.top + r.height * .25) + "px";
+    sk.appendChild(b); setTimeout(() => b.remove(), 900);
+    if (ok) btn.classList.add("right"); else btn.classList.add("popped");
+  }
+
+  /* ---------- 任務 1：猜猜我是誰 ---------- */
+  const NAMES = ORDER.map(id => ({ k: id, html: `${P[id].name}` }));
+  const G1 = [
+    { who: "musk", q: "線索：2021 年，我主持美國喜劇節目《週六夜現場》時，公開說自己有亞斯伯格症。我的公司做電動車，也做火箭。我是誰？", why: "他是伊隆．馬斯克，特斯拉執行長、SpaceX 創辦人。這是他本人在節目上親口說的。", hint: "提示：剪影旁邊有一台車和一枚火箭。" },
+    { who: "tajiri", q: "線索：小時候我超愛抓昆蟲，大家叫我「蟲博士」。長大後，我把收集、交換的樂趣，變成一款風靡全球的遊戲。我是誰？", why: "他是《寶可夢》的創作者田尻智。網路上常說他有自閉症，但 Game Freak 已經澄清他沒有，所以我們只談他對昆蟲的熱情。", hint: "提示：剪影旁邊有一顆紅白球和一隻甲蟲。" },
+    { who: "hopkins", q: "線索：我在 83 歲時以電影《父親》拿下奧斯卡最佳男主角，是史上最年長的影帝。我是誰？", why: "他是安東尼．霍普金斯。他說自己對數字和細節著迷，也喜歡背東西。", hint: "提示：剪影旁邊有一座金色小人像獎座。" },
+    { who: "peek", q: "線索：據報導，我能記住至少一萬二千本書的內容，還能左眼讀左頁、右眼讀右頁。1988 年的電影《雨人》角色靈感就來自我。我是誰？", why: "他是金．皮克。電影角色被設定為自閉症，但皮克本人後來被認為比較可能是 FG 症候群。", hint: "提示：剪影手上拿著一本打開的書。" },
+    { who: "hopkins", q: "加分題：我曾在《沉默的羔羊》演出漢尼拔一角；2017 年受訪時說晚年被診斷為亞斯伯格症，2025 年卻又說自己不太相信這類標籤。我是誰？", why: "又是安東尼．霍普金斯！他的說法前後不同，所以介紹時要把兩次說法都講清楚。", hint: "提示：他是一位得過兩次奧斯卡最佳男主角的演員。" },
+  ];
+  const g1 = game({
+    id: "g1", box: "#guess-box", cls: "names", next: "files", nextText: "看名人檔案", doneTitle: "四位名人全部現身！",
+    items: G1.map(x => ({ q: x.q, ans: x.who, why: x.why, hint: x.hint, verdict: `是${P[x.who].name}！`, choices: NAMES,
+      art: () => `<div class="art-in">${portrait(x.who, false)}</div><div class="reveal-name" style="background:#0B0F8C">${P[x.who].label}</div>` })),
+    onRight(i, box, it) {
+      const who = G1[i].who, art = box.querySelector(".gm-art");
+      art.innerHTML = `<div class="flip">${portrait(who, true)}</div><div class="reveal-name">${P[who].name}</div>`;
+    },
+  });
+
+  /* ---------- 任務 2：真相偵探 ---------- */
+  const OK = { k: "ok", t: "可以這樣說", icon: `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="#1F6E2A"/><path d="M6.5 12.5l3.5 3.5 7-8" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg>` };
+  const FIX = { k: "fix", t: "要修正", icon: `<svg viewBox="0 0 24 24" aria-hidden="true" style="color:#B3261E"><circle cx="12" cy="12" r="11" fill="#B3261E"/><g transform="translate(3 3) scale(.75)"><use href="#i-pen"/></g></svg>` };
+  const G2 = [
+    { art: () => post("musk"), q: "貼文：「馬斯克曾在節目上公開說，自己有亞斯伯格症。」", ans: "ok", why: "2021 年他主持《週六夜現場》時親口說的，有節目可以查證，可以這樣說。" },
+    { art: () => post("tajiri"), q: "貼文：「寶可夢的創作者田尻智有自閉症，所以才這麼有創意！」", ans: "fix", why: "這是網路流傳很久的說法，但查不到他本人說過，Game Freak 也澄清他沒有。可以改成：「田尻智從小熱愛昆蟲，把收集的樂趣變成遊戲。」", hint: "想想看：這句話是本人說的，還是網路傳的？" },
+    { art: () => post("peek", RAIN), q: "貼文：「《雨人》的主角，就是金．皮克本人。」", ans: "fix", why: "電影角色雷蒙只是「靈感來自」皮克，電影把角色設定為自閉症；皮克本人後來被認為比較可能是 FG 症候群。", hint: "電影角色和真實人物，一定完全一樣嗎？" },
+    { art: multiPost, q: "貼文：「自閉症的人都有像雨人一樣的超強記憶力。」", ans: "fix", why: "像皮克這樣的特殊才能只出現在少數人身上。自閉症是一道光譜，每個人的優勢都不一樣。", hint: "注意句子裡的「都」。" },
+    { art: () => post("hopkins"), q: "貼文：「霍普金斯 2017 年說自己被診斷為亞斯伯格症，但 2025 年又說不太相信這個標籤。」", ans: "ok", why: "兩次訪談都有報導可查，把前後說法都寫清楚，就是嚴謹的介紹方式。", hint: "這則貼文有把兩次說法都交代清楚喔。" },
+  ];
+  const g2 = game({
+    id: "g2", box: "#truth-box", mode: "big", cls: "two big", next: "balloon", nextText: "前往任務 3", doneTitle: "你是真相偵探！",
+    doneText: "記得：轉傳前先查證，本人說的才算數。",
+    items: G2.map(x => ({ ...x, choices: [OK, FIX], verdict: x.ans === "ok" ? "查證正確！" : "修正得好！" })),
+    onRight(i, box) {
+      const ok = G2[i].ans === "ok";
+      const s = document.createElement("div");
+      s.className = "stamp " + (ok ? "ok" : "fix"); s.textContent = ok ? "查證通過" : "需要修正";
+      box.querySelector(".gm-art").appendChild(s); sfx("stamp");
+    },
+  });
+
+  /* ---------- 任務 3：優勢氣球 ---------- */
+  const pick = (ans, others) => [ans, ...others].map(k => ({ k, t: SN[k] }));
+  const G3 = [
+    { s: { place: "field", item: "bug", seed: 1, label: "阿宏在野外觀察昆蟲" }, q: "阿宏從國中就熱愛昆蟲，進了生物系後，每個週末都到野外觀察，一待就是一整天也不覺得累。", ans: "focus", others: ["honest", "routine", "detail"], why: "能長時間投入喜歡的主題，就是「專注熱情」，跟「蟲博士」田尻智很像！" },
+    { s: { place: "room", item: "report", seed: 2, label: "小美檢查期末報告", people: [{ long: true }] }, q: "交期末報告前，小美一眼就看出表格裡有兩個數字抄錯，還記得老師上個月提醒過的格式要求。", ans: "detail", others: ["focus", "system", "honest"], why: "注意到別人沒發現的小地方，又記得很牢，這是「細節記憶」。" },
+    { s: { place: "class", item: "laptop", seed: 3, label: "小安在寫程式" }, q: "程式作業卡住了，小安把問題拆成一步一步的小規則，很快就找到是哪一行邏輯出錯。", ans: "system", others: ["routine", "detail", "focus"], why: "把複雜的問題拆開、找出規則，就是「系統思考」。" },
+    { s: { place: "class", item: "chat", seed: 4, label: "小組討論時阿杰提出意見", people: [{}, { mood: "worry" }] }, q: "小組討論時大家都說企劃很好，只有阿杰說：「這個預算算錯了，會超支。」結果真的幫大家避開了問題。", ans: "honest", others: ["detail", "system", "routine"], why: "直接說出真正的問題，就是「誠實直接」。聽起來有點直，其實是在幫忙。" },
+    { s: { place: "lib", item: "clock", seed: 5, label: "小晴每天早上到圖書館讀書", people: [{ long: true }] }, q: "小晴每天早上 8 點準時到圖書館，用同一套方法複習，一整個學期都沒有中斷。", ans: "routine", others: ["focus", "honest", "system"], why: "照著固定步驟、長時間穩定投入，就是「規律堅持」。" },
+  ];
+  const g3 = game({
+    id: "g3", box: "#balloon-box", mode: "balloon", next: "glow", nextText: "前往任務 4", doneTitle: "優勢氣球全部找到！",
+    items: G3.map(x => ({ q: x.q, ans: x.ans, why: x.why, choices: shuffle(pick(x.ans, x.others)), art: () => scene(x.s), hint: "那顆氣球破掉了，看看其他氣球吧！" })),
+  });
+
+  /* ---------- 任務 4：支持發光站 ---------- */
+  const G4 = [
+    { s: { place: "class", item: "report", seed: 0, label: "分組做報告", people: [{}, { mood: "worry" }] }, q: "分組報告時，小哲很會整理資料、做圖表，但上台報告會非常緊張。怎麼分工比較好？",
+      c: [["a", "依專長分工，請他負責資料整理和圖表"], ["b", "規定每個人都一定要上台輪流講"], ["c", "不讓他參與，大家自己做比較快"]], ans: "a", why: "讓每個人做擅長的事，小組成果最好，小哲的優勢也被看見。" },
+    { s: { place: "class", item: "chat", seed: 1, label: "同學直接指出錯誤", people: [{ mood: "flat" }, { mood: "worry" }] }, q: "阿杰在討論時直接說：「你的第二頁數據錯了。」語氣有點直。你可以怎麼做？",
+      c: [["a", "覺得他故意找碴，當場回嗆"], ["b", "先確認他說得對不對，再謝謝他提醒"], ["c", "會後在群組抱怨他很沒禮貌"]], ans: "b", why: "先看內容，不急著看語氣。直接的提醒常常能幫大家少犯錯。" },
+    { s: { place: "room", item: "phone", seed: 2, label: "小組會議要改時間", people: [{}] }, q: "小組會議臨時要改時間和地點，該怎麼通知小安？",
+      c: [["a", "開會前五分鐘再口頭說一下"], ["b", "不用特別講，他自己會發現"], ["c", "盡早在群組用文字寫清楚新的時間和地點"]], ans: "c", why: "提早、用文字、寫清楚，能減少突然變動帶來的壓力，對每個組員都有幫助。" },
+    { s: { place: "field", item: "bug", seed: 3, label: "同學分享昆蟲知識", people: [{ mood: "open" }, {}] }, q: "小安一聊到昆蟲就停不下來，可是作業還沒討論完。你可以怎麼說？",
+      c: [["a", "「好厲害！我們先把作業討論完，下課再聽你分享。」"], ["b", "「好無聊喔，可以不要再講了嗎？」"], ["c", "不說話，跟旁邊的人翻白眼"]], ans: "a", why: "先欣賞他的熱情，再友善地說清楚現在要做什麼，對方比較容易接受。" },
+    { s: { place: "lib", item: "whisper", seed: 4, label: "同學在討論別人的診斷", people: [{}, { mood: "worry" }] }, q: "班上有人說：「聽說某某好像有自閉症耶。」大家開始討論。你可以怎麼做？",
+      c: [["a", "去問那位同學到底是不是"], ["b", "不猜測、不轉傳，尊重他自己決定要不要說"], ["c", "把這件事傳到班級群組"]], ans: "b", why: "診斷是個人隱私，要不要說由本人決定。不猜測、不轉傳，就是最好的尊重。" },
+  ];
+  const LAMP = `<svg viewBox="0 0 52 64"><g class="ray" stroke="#FFC400" stroke-width="3" stroke-linecap="round"><path d="M26 2v5M6 10l4 4M46 10l-4 4M2 28h5M50 28h-5"/></g><path class="glass" d="M26 10a16 16 0 0 0-9 29c2 2 3 4 3 7h12c0-3 1-5 3-7a16 16 0 0 0-9-29z" stroke="#141B7A" stroke-width="3"/><rect x="19" y="48" width="14" height="8" rx="2" fill="#9A93A6" stroke="#141B7A" stroke-width="2"/><path d="M22 60h8" stroke="#141B7A" stroke-width="3" stroke-linecap="round"/></svg>`;
+  function lamps(n) { $("#lamps").innerHTML = Array.from({ length: 5 }, (_, k) => LAMP.replace("<svg ", `<svg class="${k < n ? "on" : ""}" `)).join(""); }
+  let lit = 0;
+  const g4 = game({
+    id: "g4", box: "#glow-box", doneTitle: "五盞優勢燈全亮了！", doneText: "謝謝你一起解密，也歡迎留下你的回饋。",
+    items: G4.map(x => ({ q: x.q, ans: x.ans, why: x.why, art: () => scene(x.s), choices: x.c.map(([k, t]) => ({ k, t })), hint: "想一想，哪個做法讓對方的優勢更能發揮？" })),
+    onRight() { lit++; lamps(lit); },
+    onReset() { lit = 0; lamps(0); },
+    onFinish() { setTimeout(() => win("優勢全亮！"), 400); },
+  });
+
+  /* ---------- 分頁 ---------- */
+  const PAGES = Array.from(document.querySelectorAll("main > section.page"));
+  const NAVS = Array.from(document.querySelectorAll(".nav a"));
+  let cur = 0;
+  function showPage(id, focusTop = true) {
+    const i = Math.max(0, PAGES.findIndex(p => p.id === id));
+    cur = i;
+    PAGES.forEach((p, k) => p.hidden = k !== i);
+    NAVS.forEach(a => a.getAttribute("href") === "#" + PAGES[i].id ? a.setAttribute("aria-current", "page") : a.removeAttribute("aria-current"));
+    const on = NAVS.find(a => a.hasAttribute("aria-current"));
+    if (on) on.scrollIntoView({ block: "nearest", inline: "center" });
+    $("#pg-prev").disabled = i === 0;
+    $("#pg-next").disabled = i === PAGES.length - 1;
+    $("#pg-pos").textContent = `${i + 1} / ${PAGES.length}`;
+    stopSpeak();
+    if (focusTop) window.scrollTo({ top: 0 });
+  }
+  document.addEventListener("click", e => {
+    const a = e.target.closest('a[href^="#"]');
+    if (!a || a.getAttribute("href").length < 2) return;
+    const id = a.getAttribute("href").slice(1);
+    if (!PAGES.some(p => p.id === id)) return;
+    e.preventDefault(); showPage(id);
+  });
+  $("#pg-prev").onclick = () => showPage(PAGES[Math.max(0, cur - 1)].id);
+  $("#pg-next").onclick = () => showPage(PAGES[Math.min(PAGES.length - 1, cur + 1)].id);
+
+  function resetAll() {
+    earned = new Set(); $("#score-n").textContent = 0;
+    stopSpeak();
+    [g1, g2, g3, g4].forEach(g => g.reset());
+  }
+  $("#reset-all").onclick = () => { resetAll(); showPage("home"); };
+
+  lamps(0);
+  resetAll();
+  showPage((location.hash || "#home").slice(1), false);
+})();
+</script>
