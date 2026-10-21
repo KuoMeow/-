@@ -299,25 +299,24 @@ footer { margin-top: 64px; padding-block: 28px 48px; color: var(--muted); font-s
 }
 /* 手機橫放：高度很矮時保留雙欄、縮小留白 */
 @media (orientation: landscape) and (max-height: 520px) {
-  body { font-size: 1.12rem; }
   .top .wrap { padding-block: 4px; }
   .hero { grid-template-columns: 1.3fr 1fr; padding-block: 16px; }
   .hero-art { max-width: none; }
   .scene, .sense, .pledge, .age-grid, .trait-grid { grid-template-columns: 1fr 1fr; gap: 18px; }
   .stages, .factor-grid { grid-template-columns: repeat(4, 1fr); gap: 10px; }
   .fq-opts { grid-template-columns: 1fr 1fr !important; }
-  .stage-card p, .factor p { font-size: 1.05rem; }
   .block { margin-top: 44px; }
   .db { padding: 40px 22px 22px; border-radius: 28px; }
-  .tag { font-size: 1.2rem; }
-  .q-text { min-height: 0; font-size: 1.4rem; }
+  .q-text { min-height: 0; }
   .ox button { padding: 8px; flex-direction: row; justify-content: center; gap: 10px; }
-  .ox button svg { width: 44px; height: 44px; }
-  .opts button { padding: 8px 12px; font-size: 1.1rem; }
+  .opts button { padding: 8px 12px; }
   .bubble-title h1 { font-size: 2.2rem; }
   .bubble-title .sub { font-size: 1.4rem; }
   .hero-lede { margin-top: 28px; font-size: 1.12rem; }
 }
+/* 大螢幕（電腦、投影）整體放大，填滿畫面 */
+@media (min-width: 1300px) { .top, main, footer { zoom: 1.15; } }
+@media (min-width: 1600px) { .top, main, footer { zoom: 1.3; } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation: none !important; transition: none !important; }
 }
@@ -379,8 +378,6 @@ html.hc #confetti { filter: none; }
       </select>
     </label>
     <button class="sfx" type="button" id="sfx" aria-pressed="true" title="答題音效開關"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-spk"/></svg>音效</button>
-    <button class="sfx" type="button" id="hc" aria-pressed="false" title="切換黑底白字">黑底白字</button>
-    <button class="sfx" id="reset-all" type="button" title="清空星星，換下一組">重新開始</button>
     <div class="score" id="score" aria-live="polite" title="已收集的星星"><svg><use href="#i-star"/></svg><span id="score-n">0</span>&nbsp;/&nbsp;<span id="score-t">16</span></div>
   </div>
 </header>
@@ -493,6 +490,10 @@ html.hc #confetti { filter: none; }
     <span class="pg-pos" id="pg-pos"></span>
     <button class="btn" type="button" id="pg-next">下一頁 ›</button>
   </nav>
+  <div class="hero-actions" style="justify-content:center">
+      <button class="btn ghost" type="button" id="hc" aria-pressed="false">黑底白字</button>
+      <button class="btn ghost" id="reset-all" type="button">重新開始（換下一組）</button>
+  </div>
 </main>
 
 <footer class="wrap">
