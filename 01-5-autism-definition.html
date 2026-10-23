@@ -3,6 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="only light">
+<meta name="theme-color" content="#DEE5EE">
 <style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -29,7 +31,8 @@
   --no-bg: #FDE9E0;
   --f-display: "Huninn", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
   --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
-  color-scheme: light;
+  /* 只用淺色：避免手機「深色模式」自動把網頁變暗、改色 */
+  color-scheme: only light;
 }
 * { box-sizing: border-box; }
 body {
