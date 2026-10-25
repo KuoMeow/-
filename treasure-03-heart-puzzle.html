@@ -212,9 +212,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   .pill { padding: 2px 10px; font-size: .9rem; }
   .prog i { width: 14px; height: 14px; }
   .game { margin-top: 6px; gap: 8px; }
-  .board svg { height: calc(100dvh - 96px); min-height: 0; max-height: none; }
+  .board svg { height: calc(100dvh - 120px); min-height: 0; max-height: none; }
   .tray { gap: 6px; }
 }
+.tray.two { flex-direction: row; flex-wrap: wrap; }
 </style>
 </head>
 <body>
@@ -347,10 +348,10 @@ button { font: inherit; color: inherit; cursor: pointer; }
   let slotSup = [], placed = {}, sel = null;
   const byId = id => SUPS.find(s => s.id === id);
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
-  const labelSVG = (s, k) => {
+  const labelSVG = (s, k, boost = 0) => {
     // 窄的三塊：兩個字一行；三行時字和圖小一點
     const lines = k % 4 ? s.label.match(/.{1,2}/g) : (s.lines || [s.label]), [tx, ty] = SPOT[k];
-    const three = lines.length > 2, fs = three ? 20 : 22, lh = fs + 2, z = three ? 28 : [46, 38, 30, 38, 46][k];
+    const three = lines.length > 2, fs = (three ? 20 : 22) + (three ? boost / 2 : boost), lh = fs + 2, z = (three ? 28 : [46, 38, 30, 38, 46][k]) * 22 / (22 + boost);
     const y0 = ty + 7 - (lines.length - 1) * lh / 2 + (three ? [0, -12, 0, -3, 0][k] : 0), iy = y0 - fs + 1 - z / 2 - 2;
     return `<use class="pic" href="#i-${s.id}" x="${tx - z / 2}" y="${iy - z / 2}" width="${z}" height="${z}"/>` + lines.map((t, i) => `<text class="lbl" x="${tx}" y="${y0 + i * lh}" style="font-size:${fs}px">${t}</text>`).join("");
   };
@@ -371,7 +372,7 @@ button { font: inherit; color: inherit; cursor: pointer; }
     const html = shuffle([0, 1, 2, 3, 4]).map(k => {
       const s = byId(slotSup[k]), b = SHAPES[k].box;
       return `<button class="piece" type="button" data-k="${k}" aria-label="${s.label}" style="--w:${b[2]};--h:${b[3]}">
-        <svg viewBox="${b.join(" ")}" aria-hidden="true"><polygon points="${SHAPES[k].poly}" fill="${s.c}"/>${labelSVG(s, k)}</svg>
+        <svg viewBox="${b.join(" ")}" aria-hidden="true"><polygon points="${SHAPES[k].poly}" fill="${s.c}"/>${labelSVG(s, k, 2)}</svg>
       </button>`;
     });
     $("#trayL").innerHTML = html.slice(0, 3).join("");
@@ -385,8 +386,21 @@ button { font: inherit; color: inherit; cursor: pointer; }
     // 拼圖片分在愛心兩側時，也要塞得進側邊欄
     const hb = $("#heart").getBoundingClientRect(), tl = $("#trayL").getBoundingClientRect();
     const side = tl.top < hb.bottom - 40;
-    let u = Math.min(r * 0.8, tl.width / 185);
-    if (side) u = Math.min(u, (hb.height - 20) / 480);
+    let u = Math.min(r, tl.width / 190), two = false;
+    if (side) {
+      // 側邊欄排一行或兩行，選拼圖片比較大的那種
+      const u1 = Math.min(tl.width / 190, (hb.height - 10) / 500), u2 = Math.min((tl.width - 10) / 380, (hb.height - 10) / 340);
+      two = u2 > u1; u = Math.min(r, two ? u2 : u1);
+    }
+    document.querySelectorAll(".tray").forEach(t => t.classList.toggle("two", two));
+    // 拼圖片縮得比較小時，字加大，畫面上至少約 17px
+    const boost = Math.max(2, Math.min(8, Math.round(17 / u - 22)));
+    document.querySelectorAll(".game .piece").forEach(pc => {
+      const k = +pc.dataset.k, sv = pc.querySelector("svg");
+      if (+sv.dataset.boost === boost) return;
+      sv.dataset.boost = boost;
+      sv.innerHTML = `<polygon points="${SHAPES[k].poly}" fill="${byId(slotSup[k]).c}"/>` + labelSVG(byId(slotSup[k]), k, boost);
+    });
     document.documentElement.style.setProperty("--u", u.toFixed(3) + "px");
     document.documentElement.style.setProperty("--ub", r.toFixed(3) + "px");
   }
