@@ -189,17 +189,6 @@ button { font: inherit; color: inherit; cursor: pointer; }
 .win .exp .row .grow { flex: 1; }
 .win .show-staff { margin: 12px 0 14px; font-weight: 700; color: var(--navy); font-size: clamp(1.05rem, 3.4vw, 1.2rem); }
 .win .acts { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-.egg-row { display: flex; align-items: center; justify-content: center; gap: 12px; flex-wrap: wrap; margin-top: 10px; }
-.egg { display: inline-flex; align-items: center; gap: 10px; border: 3px dashed var(--orange); background: #fff; border-radius: 22px; padding: 6px 16px 6px 8px; }
-.egg svg { width: 56px; height: auto; overflow: visible; }
-.egg:not(.open) svg { animation: wob 1.6s ease-in-out infinite; transform-origin: 50% 95%; }
-@keyframes wob { 0%, 60%, 100% { transform: rotate(0); } 70% { transform: rotate(-12deg); } 80% { transform: rotate(10deg); } 90% { transform: rotate(-6deg); } }
-.egg .topp { transform-box: fill-box; transform-origin: 0% 100%; transition: transform .5s cubic-bezier(.3, 1.5, .5, 1); }
-.egg.open .topp { transform: translate(-6px, -18px) rotate(-35deg); }
-.egg-t { font-family: var(--f-display); color: #A8401A; font-size: clamp(1.1rem, 3.4vw, 1.3rem); }
-.egg-msg { flex: 1 1 280px; text-align: left; background: #FFF6D6; border: 3px solid var(--yellow); border-radius: 18px; padding: 8px 14px; font-size: clamp(1.05rem, 3.2vw, 1.2rem); font-weight: 700; color: var(--ink); animation: rise .4s cubic-bezier(.2, 1.5, .4, 1); }
-.egg-msg b { display: block; color: #A8401A; font-family: var(--f-display); font-weight: 400; }
-@keyframes rise { from { transform: translateY(14px) scale(.9); opacity: 0; } }
 .got { display: none; align-items: center; gap: 10px; margin-top: 18px; background: #fff; border: 3px dashed var(--green); border-radius: 22px; padding: 10px 14px; }
 .got.show { display: flex; }
 .got svg { width: 64px; height: 64px; flex: none; }
@@ -380,22 +369,8 @@ button { font: inherit; color: inherit; cursor: pointer; }
       </div>
       <div class="exp" id="exp">
         <div class="row"><span class="grow">✓ 有優勢，但不是每個人都有</span><button class="pill" type="button" data-read="#exp-p" aria-label="報讀說明"><svg aria-hidden="true"><use href="#i-spk"/></svg>報讀</button></div>
-        <div id="exp-p"><b>部分</b>自閉症者在記憶、音樂、繪畫或計算等特定領域具有突出能力，但<b>並非每位</b>自閉症者都有特殊優異才能。不要用「天才」的標籤看每一位自閉症者，也不要忽視他們的優勢——每個人都有自己的長處，值得被看見。</div>
+        <div id="exp-p"><b>部分</b>自閉症者在記憶、音樂、繪畫或計算等特定領域具有突出能力，但<b>並非每位</b>自閉症者都有特殊優異才能。</div>
       </div>
-    </div>
-    <div class="egg-row">
-      <button class="egg" type="button" id="egg" aria-label="隱藏彩蛋，點一下打開">
-        <svg viewBox="0 0 100 120" aria-hidden="true">
-          <g stroke="#1E2748" stroke-width="4" stroke-linejoin="round">
-            <g class="bot"><path d="M10 66 C10 96 28 114 50 114 C72 114 90 96 90 66 L78 58 L66 68 L54 58 L42 68 L30 58 L18 68 Z" fill="#7FA6D9"/>
-              <path d="M14 86 Q50 100 86 86" fill="none" stroke="#FFE04F" stroke-width="6"/></g>
-            <g class="topp"><path d="M10 66 C10 30 28 6 50 6 C72 6 90 30 90 66 L78 58 L66 68 L54 58 L42 68 L30 58 L18 68 Z" fill="#F3835E"/>
-              <g fill="#FFE04F" stroke-width="2.5"><circle cx="34" cy="34" r="6"/><circle cx="62" cy="26" r="5"/><circle cx="68" cy="48" r="6"/><circle cx="44" cy="52" r="4"/></g></g>
-          </g>
-        </svg>
-        <span class="egg-t" id="egg-t">還有一顆隱藏彩蛋！點點看</span>
-      </button>
-      <div class="egg-msg" id="egg-msg" hidden><b>🎁 隱藏彩蛋</b>每個人都有自己的優勢，不一定是「特殊才能」才算數。你的優勢是什麼呢？找一位朋友互相說說看吧！</div>
     </div>
     <p class="show-staff">🎉 恭喜拿到「名人」關卡章！請把畫面給關主看，蓋章後前往下一站。</p>
     <div class="acts">
@@ -665,19 +640,12 @@ button { font: inherit; color: inherit; cursor: pointer; }
   function reset() {
     stopSpeak(); $("#win").classList.remove("show"); $("#got").classList.remove("show");
     q1done = false; q1busy = false; buildQ1(); buildBoard();
-    $("#egg").classList.remove("open"); $("#egg-msg").hidden = true; $("#egg-t").textContent = "還有一顆隱藏彩蛋！點點看";
     $("#step1").hidden = false; $("#step2").hidden = true;
     $("#st1").className = "now"; $("#st2").className = "";
     sfx("tap"); window.scrollTo({ top: 0, behavior: "smooth" });
   }
   $("#close-win").onclick = () => { stopSpeak(); $("#win").classList.remove("show"); $("#got").classList.add("show"); sfx("tap"); };
   $("#again").onclick = reset;
-  $("#egg").onclick = () => {
-    const e = $("#egg"); if (e.classList.contains("open")) return;
-    e.classList.add("open"); sfx("pop"); setTimeout(() => sfx("ding"), 200);
-    $("#egg-t").textContent = "彩蛋打開了！";
-    $("#egg-msg").hidden = false; confetti();
-  };
   $("#again2").onclick = reset;
 
   /* ---------- 音效 ---------- */
