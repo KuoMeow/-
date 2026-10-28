@@ -1,0 +1,678 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>藏寶圖第三站：愛心拼圖</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* 和看見星世界系列同一套配色：淺藍灰底、深藍字、橘色重點；只用淺色主題 */
+:root {
+  --paper: #DEE5EE;
+  --card: #F7F9FB;
+  --navy: #141B7A;
+  --ink: #1E2748;
+  --muted: #3B4260;
+  --orange: #E8673C;
+  --coral: #F3835E;
+  --yellow: #FFE04F;
+  --sky: #CFDDF0;
+  --line: #B9C8DC;
+  --green: #1F6E2A;
+  --ok: #2E8A3A;
+  --ok-bg: #E5F5E2;
+  --no-bg: #FDE9E0;
+  --f-display: "Huninn", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  color-scheme: only light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 18px;
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.wrap { max-width: 1200px; margin: 0 auto; padding: 14px 16px 28px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+/* 頂部 */
+.top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.station { display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: #fff; font-family: var(--f-display); font-size: 1.05rem; padding: 4px 16px 4px 6px; border-radius: 999px; white-space: nowrap; }
+.station .no { background: var(--yellow); color: var(--navy); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; }
+.top .grow { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 3px solid var(--navy); background: #fff; color: var(--navy); font-weight: 700; font-size: 1rem; padding: 4px 14px; border-radius: 999px; white-space: nowrap; }
+.pill svg { width: 20px; height: 20px; }
+.pill.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+.pill[aria-pressed="false"] .wave { display: none; }
+
+/* 題目區 */
+.hero { margin-top: 14px; background: var(--card); border: 3px solid var(--line); border-radius: 28px; padding: 12px 20px; }
+.hero h1 { font-family: var(--f-display); font-weight: 400; color: var(--navy); font-size: clamp(1.5rem, 5vw, 2.3rem); line-height: 1.3; margin: 0; text-wrap: balance; }
+.hero .lead { margin: 2px 0 0; color: var(--muted); font-size: clamp(1rem, 2.6vw, 1.15rem); }
+.hero .tools { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 6px; }
+.prog { display: inline-flex; align-items: center; gap: 5px; font-weight: 700; color: var(--navy); }
+.prog i { width: 18px; height: 18px; border-radius: 50%; border: 3px solid var(--navy); background: #fff; transition: background .3s, transform .3s; }
+.prog i.on { background: var(--ok); border-color: var(--ok); transform: scale(1.15); }
+
+/* 拼圖：左邊心形拼板、右邊五片拼圖 */
+.game { display: grid; grid-template-columns: 1fr; gap: 14px; margin-top: 14px; align-items: start; }
+.board { padding: 0; }
+.board svg { overflow: visible; display: block; width: 100%; height: auto; max-height: 78vh; margin: 0 auto; touch-action: manipulation; }
+.slot { cursor: pointer; }
+.slot .bg { fill: #EEF2F7; transition: fill .3s; }
+.slot .clue { font-family: var(--f-display); font-size: 19px; fill: var(--muted); text-anchor: middle; pointer-events: none; }
+.slot .q { font-family: var(--f-display); font-size: 15px; fill: #8A92A8; text-anchor: middle; pointer-events: none; }
+.picking .slot:not(.done) .bg { animation: glow 1.2s ease-in-out infinite; }
+@keyframes glow { 50% { fill: #FFE6D6; } }
+.slot.hover .bg { fill: #FFD3BD !important; animation: none !important; }
+.slot.done { cursor: default; }
+.slot.done .bg { fill: var(--c); }
+.slot.done .clue, .slot.done .q { display: none; }
+.slot .lbl, .slot .pic { display: none; font-family: var(--f-display); font-size: 22px; fill: var(--navy); text-anchor: middle; pointer-events: none; }
+.slot.done .lbl, .slot.done .pic { display: inline; }
+.slot.pop { animation: pop .5s cubic-bezier(.2, 1.6, .4, 1); transform-box: fill-box; transform-origin: center; }
+@keyframes pop { from { transform: scale(.7); opacity: .2; } }
+.slot.bad .bg { fill: #F7B9A4; }
+.seams { stroke: #fff; stroke-width: 7; pointer-events: none; }
+.outline { fill: none; stroke: var(--navy); stroke-width: 7; stroke-linejoin: round; pointer-events: none; }
+.board.full .heart-all { animation: beat 1.1s ease-in-out 2; transform-box: fill-box; transform-origin: center; }
+@keyframes beat { 30% { transform: scale(1.05); } 60% { transform: scale(.98); } }
+
+.tray { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.tray-h { grid-column: 1 / -1; margin: 0; font-family: var(--f-display); color: var(--navy); font-size: 1.2rem; font-weight: 400; }
+.tile { position: relative; display: flex; align-items: center; gap: 8px; width: 100%; min-height: 64px; padding: 8px 12px; background: var(--c); border: 4px solid var(--navy); border-radius: 20px; box-shadow: 0 5px 0 var(--navy); text-align: left; touch-action: none; user-select: none; -webkit-user-select: none; transition: transform .15s, box-shadow .15s, opacity .3s; }
+.tile:last-child:nth-child(even) { grid-column: 1 / -1; }
+.tile:focus-visible { outline: 5px solid var(--orange); outline-offset: 3px; }
+.tile:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--navy); }
+.tile .ico { flex: none; width: 40px; height: 40px; background: #fff; border-radius: 12px; padding: 2px; }
+.tile .t { font-family: var(--f-display); color: var(--navy); font-size: clamp(1.15rem, 3.8vw, 1.4rem); line-height: 1.2; }
+.tile.sel { border-color: var(--orange); box-shadow: 0 5px 0 var(--orange), 0 0 0 4px #FFD3BD; transform: translateY(-3px); }
+.tile.used { opacity: .28; pointer-events: none; box-shadow: none; transform: none; }
+.tile.dragging { opacity: .4; }
+.tile.shake { animation: shake .45s; }
+@keyframes shake { 20%, 60% { transform: translateX(-8px); } 40%, 80% { transform: translateX(8px); } }
+.ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; width: auto; min-height: 0; transform: translate(-50%, -120%) rotate(-4deg); box-shadow: 0 10px 22px rgba(20, 27, 122, .35); }
+
+/* 每放對一片就出現說明 */
+.exp-box { display: none; margin-top: 14px; background: var(--ok-bg); border: 3px solid #9FD19A; border-radius: 22px; padding: 12px 16px; font-size: clamp(1.05rem, 3.3vw, 1.22rem); }
+.exp-box.show { display: block; animation: rise .35s cubic-bezier(.2, 1.5, .4, 1); }
+@keyframes rise { from { transform: scale(.94); opacity: 0; } }
+.exp-box .row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-family: var(--f-display); color: var(--green); font-size: 1.25rem; }
+.exp-box .row .grow { flex: 1; }
+.exp-box b { color: var(--navy); }
+
+/* 放錯提示：底部卡片 */
+.sheet-bg, .win-bg { position: fixed; inset: 0; z-index: 40; background: rgba(20, 27, 122, .35); display: flex; align-items: flex-end; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.sheet-bg.show, .win-bg.show { opacity: 1; pointer-events: auto; }
+.sheet { width: min(640px, 100%); background: var(--no-bg); border: 4px solid var(--orange); border-radius: 28px; padding: 18px 20px 20px; transform: translateY(40px); transition: transform .3s; max-height: 90vh; overflow: auto; }
+.sheet-bg.show .sheet { transform: none; }
+.sheet .head { display: flex; align-items: center; gap: 10px; }
+.sheet .verdict { font-family: var(--f-display); font-size: clamp(1.5rem, 5vw, 2rem); color: #A8401A; flex: 1; }
+.sheet p { margin: 8px 0 14px; font-size: clamp(1.1rem, 3.6vw, 1.3rem); color: var(--ink); }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--orange); color: #fff; font-family: var(--f-display); font-size: clamp(1.25rem, 4vw, 1.5rem); padding: 10px 28px; border-radius: 999px; box-shadow: 0 5px 0 #A8401A; }
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #A8401A; }
+.btn.ghost-btn { background: #fff; color: var(--navy); border: 3px solid var(--navy); box-shadow: 0 5px 0 var(--navy); }
+
+/* 拼完：守護的心 + 關卡章 */
+.win-bg { align-items: center; background: rgba(20, 27, 122, .55); }
+.win { width: min(720px, 100%); max-height: calc(100dvh - 32px); overflow: auto; background: var(--card); border: 5px solid var(--yellow); border-radius: 32px; padding: 18px 20px 22px; text-align: center; transform: scale(.85); transition: transform .35s cubic-bezier(.2, 1.4, .4, 1); }
+.win-bg.show .win { transform: none; }
+.win-title { font-family: var(--f-display); color: var(--green); font-size: clamp(1.8rem, 6.5vw, 2.6rem); line-height: 1.2; margin: 0; }
+.win-title small { display: block; margin-top: 4px; font-size: .6em; color: var(--navy); text-wrap: balance; }
+.win-body { display: grid; grid-template-columns: 1fr; gap: 6px; align-items: center; justify-items: center; }
+.scene { position: relative; width: min(280px, 62vw); margin: 18px 30px 0 0; }
+.scene .mini { display: block; width: 100%; height: auto; transform: scale(.5); opacity: 0; transition: transform .6s cubic-bezier(.2, 1.5, .4, 1) .15s, opacity .3s .15s; }
+.win-bg.show .scene .mini { transform: none; opacity: 1; }
+.stamp { position: absolute; right: -24%; top: 4%; width: 36%; transform: scale(.2) rotate(-30deg); opacity: 0; transition: transform .7s cubic-bezier(.2, 1.5, .4, 1) .8s, opacity .3s .8s; }
+.win-bg.show .stamp { transform: scale(1) rotate(-8deg); opacity: 1; }
+.win .exp { background: var(--ok-bg); border: 3px solid #9FD19A; border-radius: 20px; padding: 12px 16px; text-align: left; font-size: clamp(1.05rem, 3.3vw, 1.22rem); margin: 6px 0 0; }
+.win .exp b { color: var(--navy); }
+.win .exp .row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-family: var(--f-display); color: var(--green); font-size: 1.25rem; }
+.win .exp .row .grow { flex: 1; }
+.win .show-staff { margin: 12px 0 14px; font-weight: 700; color: var(--navy); font-size: clamp(1.05rem, 3.4vw, 1.2rem); }
+.win .acts { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.got { display: none; align-items: center; gap: 10px; margin-top: 18px; background: #fff; border: 3px dashed var(--green); border-radius: 22px; padding: 10px 14px; }
+.got.show { display: flex; }
+.got svg { width: 64px; height: 64px; flex: none; }
+.got .t { flex: 1; font-weight: 700; color: var(--green); font-size: 1.1rem; }
+
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
+
+/* 寬螢幕、手機橫放：拼板和拼圖片左右並排 */
+@media (min-width: 760px), (orientation: landscape) and (min-width: 560px) {
+  .game { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); }
+  .tray { grid-template-columns: 1fr; }
+  .tile:last-child:nth-child(even) { grid-column: auto; }
+  .win-body { grid-template-columns: auto 1fr; gap: 18px; }
+}
+/* 手機橫放（高度很矮）：壓縮版面 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .wrap { padding-top: 8px; padding-bottom: 12px; }
+  .hero { margin-top: 8px; padding: 6px 14px; border-radius: 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 2px 14px; }
+  .hero h1 { font-size: 1.35rem; }
+  .hero .lead { display: none; }
+  .hero .tools { margin-top: 0; }
+  .game { margin-top: 10px; gap: 12px; }
+  .board svg { max-height: calc(100dvh - 105px); }
+  .tray { gap: 8px; }
+  .tray-h { font-size: 1rem; }
+  .tile { min-height: 0; padding: 4px 10px; border-radius: 16px; }
+  .tile .ico { width: 32px; height: 32px; }
+  .tile .t { font-size: 1.15rem; }
+  .win { padding: 10px 16px 14px; }
+  .win-title { font-size: 1.7rem; }
+  .scene { width: 170px; }
+  .win .exp { font-size: 1rem; }
+  .win .show-staff { margin: 6px 0 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}
+
+/* 愛心拼圖：只有五個詞，靠形狀拼 */
+.slot .bg { stroke: #fff; stroke-width: 5; stroke-linejoin: round; }
+.tray { display: flex; flex-wrap: wrap; gap: 12px 14px; justify-content: center; align-items: center; align-content: center; }
+.lbl { font-family: var(--f-display); font-size: 22px; fill: var(--navy); text-anchor: middle; pointer-events: none; }
+.piece { position: relative; background: none; border: 0; padding: 0; touch-action: none; user-select: none; -webkit-user-select: none; transition: transform .15s; }
+.piece svg { display: block; width: calc(var(--w) * var(--u, 1px)); height: calc(var(--h) * var(--u, 1px)); overflow: visible; }
+.piece polygon { stroke: var(--navy); stroke-width: 5; stroke-linejoin: round; }
+.piece:focus-visible { outline: 5px solid var(--orange); outline-offset: 3px; border-radius: 12px; }
+.piece.sel { transform: translateY(-5px) scale(1.04); }
+.piece.sel polygon { stroke: var(--orange); stroke-width: 8; }
+.piece.used { display: none; }
+.piece.dragging { opacity: .3; }
+.piece.shake { animation: shake .45s; }
+.piece.ghost { position: fixed; left: 0; top: 0; z-index: 50; pointer-events: none; transform: translate(-50%, -50%); filter: drop-shadow(0 8px 10px rgba(20, 27, 122, .35)); }
+.piece.ghost svg { width: calc(var(--w) * var(--ub, 1px)); height: calc(var(--h) * var(--ub, 1px)); }
+.scene { margin: 14px auto 4px; }
+.hero { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; }
+.hero .tools { margin-top: 0; }
+
+/* 愛心在中間，拼圖片分在兩側（手機直放時在愛心下面） */
+.hero h1 { font-size: clamp(1.05rem, 3.4vw, 1.45rem); }
+.game { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "board board" "l r"; align-items: center; }
+.board { grid-area: board; }
+#trayL { grid-area: l; } #trayR { grid-area: r; }
+.tray { flex-direction: column; flex-wrap: nowrap; }
+@media (min-width: 760px), (orientation: landscape) and (min-width: 560px) {
+  .game { grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); grid-template-areas: "l board r"; }
+  .board svg { width: auto; height: calc(100dvh - 190px); min-height: 280px; max-width: 58vw; max-height: none; }
+}
+@media (orientation: landscape) and (max-height: 520px) {
+  .wrap { padding-top: 6px; padding-bottom: 6px; }
+  .hero { margin-top: 6px; padding: 3px 12px; border-radius: 16px; gap: 2px 12px; }
+  .hero h1 { font-size: 1rem; }
+  .pill { padding: 2px 10px; font-size: .9rem; }
+  .prog i { width: 14px; height: 14px; }
+  .game { margin-top: 6px; gap: 8px; }
+  .board svg { height: calc(100dvh - 120px); min-height: 0; max-height: none; }
+  .tray { gap: 6px; }
+}
+.tray.two { flex-direction: row; flex-wrap: wrap; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-spk" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sfx" viewBox="0 0 24 24"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/></symbol>
+    <!-- 協助：握手（與 treasure-icons/03-support-handshake.svg 相同） -->
+    <symbol id="i-hands" viewBox="0 0 512 512">
+      <g stroke="#1E2748" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="256" cy="430" rx="190" ry="20" fill="#B9C8DC" stroke="none" opacity=".7"/>
+        <path d="M24,236 L150,236 L150,348 L24,348 Z" fill="#7FA6D9"/>
+        <rect x="146" y="228" width="34" height="128" rx="10" fill="#FFFFFF"/>
+        <path d="M488,236 L362,236 L362,348 L488,348 Z" fill="#F3835E"/>
+        <rect x="332" y="228" width="34" height="128" rx="10" fill="#FFFFFF"/>
+        <path d="M180,246 C230,236 286,244 330,268 C350,280 346,306 326,310 L262,312 C236,334 206,340 180,336 Z" fill="#F6D3B8"/>
+        <path d="M332,240 C296,226 254,228 220,250 C206,260 206,276 220,282 L332,300 Z" fill="#F1C29E"/>
+        <rect x="198" y="268" width="34" height="78" rx="17" fill="#F1C29E"/>
+        <rect x="228" y="272" width="34" height="82" rx="17" fill="#F1C29E"/>
+        <rect x="258" y="276" width="34" height="80" rx="17" fill="#F1C29E"/>
+        <rect x="288" y="280" width="46" height="68" rx="17" fill="#F1C29E"/>
+        <path d="M200,252 C230,236 268,230 296,236" fill="none" stroke-width="40"/>
+        <path d="M200,252 C230,236 268,230 296,236" fill="none" stroke="#F6D3B8" stroke-width="22"/>
+        <path d="M256,186 C224,160 206,126 228,106 C242,94 256,102 256,116 C256,102 270,94 284,106 C306,126 288,160 256,186 Z" fill="#E8673C"/>
+        <path d="M150,120 l7,19 19,7 -19,7 -7,19 -7,-19 -19,-7 19,-7 Z" fill="#FFE04F" stroke-width="5"/>
+        <path d="M370,130 l6,16 16,6 -16,6 -6,16 -6,-16 -16,-6 16,-6 Z" fill="#FFE04F" stroke-width="5"/>
+      </g>
+    </symbol>
+    <!-- 五種協助方式的小圖 -->
+    <symbol id="i-beh" viewBox="0 0 64 64"><g stroke="#1E2748" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round"><rect x="8" y="40" width="16" height="16" rx="3" fill="#CFDDF0"/><rect x="24" y="28" width="16" height="28" rx="3" fill="#9DB8DE"/><rect x="40" y="16" width="16" height="40" rx="3" fill="#7FA6D9"/><path d="M48 3 l2.6 5.4 5.9.8-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8-4.3-4.1 5.9-.8Z" fill="#FFE04F"/><path d="M12 30 q6-10 16-8" fill="none"/><path d="M24 18 l4 4 -5 3" fill="none"/></g></symbol>
+    <symbol id="i-speech" viewBox="0 0 64 64"><g stroke="#1E2748" stroke-width="3.5" stroke-linejoin="round"><path d="M6 10 h30 a5 5 0 0 1 5 5 v14 a5 5 0 0 1 -5 5 h-16 l-8 7 v-7 h-6 a5 5 0 0 1 -5 -5 v-14 a5 5 0 0 1 5 -5Z" fill="#F3835E"/><path d="M58 26 h-14 v10 a5 5 0 0 1 -5 5 h-8 v1 a5 5 0 0 0 5 5 h10 l8 7 v-7 h4 a5 5 0 0 0 5 -5 v-11 a5 5 0 0 0 -5 -5Z" fill="#CFDDF0"/><circle cx="14" cy="22" r="2.4" fill="#fff" stroke="none"/><circle cx="21" cy="22" r="2.4" fill="#fff" stroke="none"/><circle cx="28" cy="22" r="2.4" fill="#fff" stroke="none"/></g></symbol>
+    <symbol id="i-med" viewBox="0 0 64 64"><g stroke="#1E2748" stroke-width="3.5" stroke-linejoin="round"><g transform="rotate(-40 32 32)"><rect x="10" y="22" width="44" height="20" rx="10" fill="#fff"/><path d="M32 22 h12 a10 10 0 0 1 0 20 h-12 Z" fill="#7ED3A0"/></g><path d="M50 6 v12 M44 12 h12" stroke="#E8673C" stroke-width="4.5" stroke-linecap="round"/></g></symbol>
+    <symbol id="i-school" viewBox="0 0 64 64"><g stroke="#1E2748" stroke-width="3.5" stroke-linejoin="round"><path d="M6 26 L32 10 L58 26 Z" fill="#E8673C"/><rect x="10" y="26" width="44" height="28" fill="#CFDDF0"/><rect x="27" y="38" width="10" height="16" fill="#FFE04F"/><rect x="15" y="32" width="8" height="8" fill="#fff"/><rect x="41" y="32" width="8" height="8" fill="#fff"/><path d="M4 56 h56" stroke-linecap="round"/><circle cx="32" cy="20" r="3" fill="#fff"/></g></symbol>
+    <symbol id="i-family" viewBox="0 0 64 64"><g stroke="#1E2748" stroke-width="3.5" stroke-linejoin="round"><path d="M6 30 L32 8 L58 30" fill="none" stroke-linecap="round"/><path d="M12 26 v30 h40 v-30 L32 10 Z" fill="#FFE9C9"/><path d="M32 48 c-9-6-12-11-9-15 2.6-3.2 7-2 9 1.2 2-3.2 6.4-4.4 9-1.2 3 4 0 9-9 15Z" fill="#E8673C"/></g></symbol>
+    <!-- 關卡章 -->
+    <symbol id="i-stamp" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="94" fill="#fff" stroke="#E8673C" stroke-width="8"/>
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#E8673C" stroke-width="3" stroke-dasharray="6 6"/>
+      <use href="#i-hands" x="40" y="14" width="120" height="120"/>
+      <rect x="38" y="128" width="124" height="40" rx="20" fill="#E8673C"/>
+      <text x="100" y="157" text-anchor="middle" font-family="Huninn, 'Noto Sans TC', sans-serif" font-size="26" fill="#fff" letter-spacing="3">協助 ✓</text>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <span class="station"><span class="no">3</span>藏寶圖第三站：協助</span>
+    <span class="grow"></span>
+    <button class="pill" id="sfx-btn" type="button" aria-pressed="true"><svg aria-hidden="true"><use href="#i-sfx"/></svg><span id="sfx-t">音效開</span></button>
+  </header>
+
+  <section class="hero" aria-labelledby="q">
+    <h1 id="q">請用這5個拼圖，拼出大愛心</h1>
+    <div class="tools">
+      <button class="pill" type="button" id="read-all" aria-label="報讀拼圖片"><svg aria-hidden="true"><use href="#i-spk"/></svg>報讀</button>
+      <span class="prog" id="prog" aria-live="polite"><span id="prog-t">0 / 5</span><i></i><i></i><i></i><i></i><i></i></span>
+    </div>
+  </section>
+
+  <div class="game">
+    <div class="board" id="board">
+      <svg id="heart" viewBox="22 48 356 306" role="group" aria-label="愛心拼板"></svg>
+    </div>
+    <div class="tray" id="trayL" aria-label="拼圖片"></div>
+    <div class="tray" id="trayR" aria-label="拼圖片"></div>
+  </div>
+
+  <div class="got" id="got" role="status">
+    <svg aria-hidden="true"><use href="#i-stamp"/></svg>
+    <span class="t">🎉 恭喜過關！</span>
+    <button class="pill" type="button" id="again2">再玩一次</button>
+  </div>
+</div>
+
+<!-- 拼完：愛心 + 關卡章 -->
+<div class="win-bg" id="win" role="dialog" aria-modal="true" aria-labelledby="win-t">
+  <div class="win">
+    <h2 class="win-title" id="win-t">完成大愛心囉！<small>記得這些方法能協助自閉症者喔！</small></h2>
+    <div class="scene">
+      <svg class="mini" id="mini" viewBox="22 48 356 306" aria-hidden="true"></svg>
+      <svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="協助關卡章"><use href="#i-stamp"/></svg>
+    </div>
+    <p class="show-staff">🎉 恭喜過關！</p>
+    <div class="acts">
+      <button class="btn" type="button" id="close-win">好！</button>
+      <button class="btn ghost-btn" type="button" id="again">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+
+  /* ---------- 五片拼圖 ---------- */
+  const SUPS = [
+    { id: "beh", label: "行為治療", c: "#9DC3F0" },
+    { id: "speech", label: "語言治療", c: "#F9B48F" },
+    { id: "med", label: "藥物治療", c: "#8FDAAE" },
+    { id: "school", label: "學校教育介入", lines: ["學校教育", "介入"], c: "#FFDB6E" },
+    { id: "family", label: "家長協助", c: "#D5C2F0" },
+  ];
+
+  /* ---------- 愛心切成五塊：從中心往外切 ---------- */
+  const HEART = "M200 340 C 82 262, 22 196, 38 124 C 54 56, 156 40, 200 104 C 244 40, 346 56, 362 124 C 378 196, 318 262, 200 340 Z";
+  const C = [200, 166];
+  const CUTS = [-90, 6, 63, 117, 174, 270];
+  const SPOT = [[276, 138], [270, 244], [200, 284], [130, 244], [124, 138]];  // 每塊放字的位置，圖放在字的上面
+
+  // 沿著愛心外框取點，依角度分到五塊，做成每一塊的多邊形
+  const SHAPES = (() => {
+    const ns = "http://www.w3.org/2000/svg", sv = document.createElementNS(ns, "svg"), p = document.createElementNS(ns, "path");
+    sv.setAttribute("style", "position:absolute;width:0;height:0"); p.setAttribute("d", HEART); sv.appendChild(p); document.body.appendChild(sv);
+    const L = p.getTotalLength(), pts = [];
+    for (let i = 0; i < 1600; i++) { const q = p.getPointAtLength(L * i / 1600); let ang = Math.atan2(q.y - C[1], q.x - C[0]) * 180 / Math.PI; if (ang < -90) ang += 360; pts.push([q.x, q.y, ang]); }
+    sv.remove();
+    return CUTS.slice(0, 5).map((a0, k) => {
+      const a1 = CUTS[k + 1];
+      const ring = pts.filter(q => q[2] >= a0 - 0.3 && q[2] <= a1 + 0.3).sort((m, n) => m[2] - n[2]);
+      const poly = [C, ...ring].map(q => `${q[0].toFixed(1)},${q[1].toFixed(1)}`).join(" ");
+      const xs = ring.map(q => q[0]).concat(C[0]), ys = ring.map(q => q[1]).concat(C[1]);
+      const bx = Math.min(...xs), by = Math.min(...ys);
+      return { poly, box: [bx - 6, by - 6, Math.max(...xs) - bx + 12, Math.max(...ys) - by + 12] };
+    });
+  })();
+
+  let slotSup = [], placed = {}, sel = null;
+  const byId = id => SUPS.find(s => s.id === id);
+  function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  const labelSVG = (s, k, boost = 0) => {
+    // 窄的三塊：兩個字一行；三行時字和圖小一點
+    const lines = k % 4 ? s.label.match(/.{1,2}/g) : (s.lines || [s.label]), [tx, ty] = SPOT[k];
+    const three = lines.length > 2, fs = (three ? 20 : 22) + (three ? boost / 2 : boost), lh = fs + 2, z = (three ? 28 : [46, 38, 30, 38, 46][k]) * 22 / (22 + boost);
+    const y0 = ty + 7 - (lines.length - 1) * lh / 2 + (three ? [0, -12, 0, -3, 0][k] : 0), iy = y0 - fs + 1 - z / 2 - 2;
+    return `<use class="pic" href="#i-${s.id}" x="${tx - z / 2}" y="${iy - z / 2}" width="${z}" height="${z}"/>` + lines.map((t, i) => `<text class="lbl" x="${tx}" y="${y0 + i * lh}" style="font-size:${fs}px">${t}</text>`).join("");
+  };
+
+  function boardSVG() {
+    return SHAPES.map((sh, k) => {
+      const s = byId(slotSup[k]);
+      return `<g class="slot${placed[k] ? " done" : ""}" data-k="${k}" style="--c:${s.c}">
+        <polygon class="bg" points="${sh.poly}"/>${labelSVG(s, k)}</g>`;
+    }).join("") + `<path class="outline" d="${HEART}"/>`;
+  }
+
+  function build() {
+    placed = {}; sel = null;
+    slotSup = shuffle(SUPS.map(s => s.id));
+    $("#heart").innerHTML = `<g class="heart-all">${boardSVG()}</g>`;
+    $("#board").classList.remove("full");
+    const html = shuffle([0, 1, 2, 3, 4]).map(k => {
+      const s = byId(slotSup[k]), b = SHAPES[k].box;
+      return `<button class="piece" type="button" data-k="${k}" aria-label="${s.label}" style="--w:${b[2]};--h:${b[3]}">
+        <svg viewBox="${b.join(" ")}" aria-hidden="true"><polygon points="${SHAPES[k].poly}" fill="${s.c}"/>${labelSVG(s, k, 2)}</svg>
+      </button>`;
+    });
+    $("#trayL").innerHTML = html.slice(0, 3).join("");
+    $("#trayR").innerHTML = html.slice(3).join("");
+    $("#got").classList.remove("show");
+    progress(); setSel(null); scale();
+  }
+  // 拼圖片和拼板用接近的比例，形狀才看得出來
+  function scale() {
+    const r = $("#heart").getBoundingClientRect().width / 356;
+    // 拼圖片分在愛心兩側時，也要塞得進側邊欄
+    const hb = $("#heart").getBoundingClientRect(), tl = $("#trayL").getBoundingClientRect();
+    const side = tl.top < hb.bottom - 40;
+    let u = Math.min(r, tl.width / 190), two = false;
+    if (side) {
+      // 側邊欄排一行或兩行，選拼圖片比較大的那種
+      const u1 = Math.min(tl.width / 190, (hb.height - 10) / 500), u2 = Math.min((tl.width - 10) / 380, (hb.height - 10) / 340);
+      two = u2 > u1; u = Math.min(r, two ? u2 : u1);
+    }
+    document.querySelectorAll(".tray").forEach(t => t.classList.toggle("two", two));
+    // 拼圖片縮得比較小時，字加大，畫面上至少約 17px
+    const boost = Math.max(2, Math.min(8, Math.round(17 / u - 22)));
+    document.querySelectorAll(".game .piece").forEach(pc => {
+      const k = +pc.dataset.k, sv = pc.querySelector("svg");
+      if (+sv.dataset.boost === boost) return;
+      sv.dataset.boost = boost;
+      sv.innerHTML = `<polygon points="${SHAPES[k].poly}" fill="${byId(slotSup[k]).c}"/>` + labelSVG(byId(slotSup[k]), k, boost);
+    });
+    document.documentElement.style.setProperty("--u", u.toFixed(3) + "px");
+    document.documentElement.style.setProperty("--ub", r.toFixed(3) + "px");
+  }
+  addEventListener("resize", scale);
+  if (window.ResizeObserver) new ResizeObserver(scale).observe($("#heart"));
+
+  function progress() {
+    const n = Object.keys(placed).length;
+    $("#prog-t").textContent = `${n} / 5`;
+    $("#prog").querySelectorAll("i").forEach((d, k) => d.classList.toggle("on", k < n));
+  }
+  function setSel(pc) {
+    $(".game").querySelectorAll(".piece.sel").forEach(t => t.classList.remove("sel"));
+    sel = pc; if (pc) pc.classList.add("sel");
+    $("#board").classList.toggle("picking", !!pc);
+  }
+  const slotEl = k => $(`#heart .slot[data-k="${k}"]`);
+
+  /* ---------- 放拼圖 ---------- */
+  function place(pc, k) {
+    stopSpeak(); setSel(null);
+    const g = slotEl(k);
+    if (+pc.dataset.k === k) {
+      placed[k] = true;
+      g.classList.add("done", "pop");
+      pc.classList.add("used");
+      progress(); sfx("ok");
+      if (Object.keys(placed).length === 5) {
+        $("#board").classList.add("full");
+        setTimeout(() => {
+          $("#mini").innerHTML = boardSVG();
+          $("#win").classList.add("show"); cheerSound(); confetti(); $("#close-win").focus();
+        }, 1300);
+      }
+    } else {
+      sfx("no");
+      g.classList.add("bad"); setTimeout(() => g.classList.remove("bad"), 600);
+      pc.classList.remove("shake"); void pc.offsetWidth; pc.classList.add("shake");
+    }
+  }
+
+  /* 點選：先點拼圖片，再點拼板上的位置 */
+  $(".game").addEventListener("click", e => {
+    const t = e.target.closest(".piece");
+    if (!t || t.classList.contains("used") || justDragged) return;
+    sfx("tap"); setSel(sel === t ? null : t);
+  });
+  $("#heart").addEventListener("click", e => {
+    const g = e.target.closest(".slot");
+    if (!g || g.classList.contains("done") || justDragged) return;
+    if (!sel) { sfx("tap"); $(".game").querySelectorAll(".piece:not(.used)").forEach(t => { t.classList.remove("shake"); void t.offsetWidth; t.classList.add("shake"); }); return; }
+    place(sel, +g.dataset.k);
+  });
+
+  /* 拖曳：按住拼圖片拖到拼板上放開 */
+  let drag = null, justDragged = false;
+  $(".game").addEventListener("pointerdown", e => {
+    const t = e.target.closest(".piece");
+    if (!t || t.classList.contains("used")) return;
+    drag = { t, id: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false, ghost: null, over: null };
+    try { t.setPointerCapture(e.pointerId); } catch (err) {}
+  });
+  function slotAt(x, y) {
+    const el = document.elementFromPoint(x, y), g = el && el.closest && el.closest("#heart .slot");
+    return g && !g.classList.contains("done") ? g : null;
+  }
+  addEventListener("pointermove", e => {
+    if (!drag || e.pointerId !== drag.id) return;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) < 10) return;
+    if (!drag.moved) {
+      drag.moved = true; setSel(drag.t); drag.t.classList.add("dragging");
+      const gh = drag.t.cloneNode(true); gh.className = "piece ghost"; gh.setAttribute("aria-hidden", "true");
+      document.body.appendChild(gh); drag.ghost = gh;
+    }
+    e.preventDefault();
+    drag.ghost.style.left = e.clientX + "px"; drag.ghost.style.top = e.clientY + "px";
+    if (e.clientY < 60) scrollBy(0, -12); else if (e.clientY > innerHeight - 60) scrollBy(0, 12);
+    const g = slotAt(e.clientX, e.clientY);
+    if (drag.over && drag.over !== g) drag.over.classList.remove("hover");
+    if (g) g.classList.add("hover");
+    drag.over = g;
+  }, { passive: false });
+  function endDrag(e, cancel) {
+    if (!drag || e.pointerId !== drag.id) return;
+    const d = drag; drag = null;
+    if (d.over) d.over.classList.remove("hover");
+    if (!d.moved) return;
+    d.t.classList.remove("dragging"); if (d.ghost) d.ghost.remove();
+    justDragged = true; setTimeout(() => { justDragged = false; }, 60);
+    const g = cancel ? null : slotAt(e.clientX, e.clientY);
+    if (g) place(d.t, +g.dataset.k); else setSel(null);
+  }
+  addEventListener("pointerup", e => endDrag(e, false));
+  addEventListener("pointercancel", e => endDrag(e, true));
+
+  $("#read-all").addEventListener("click", e => {
+    const left = Array.from(document.querySelectorAll(".game .piece:not(.used)")).map(n => n.getAttribute("aria-label"));
+    speak(left.length ? left.join("、") : SUPS.map(s => s.label).join("、"), e.currentTarget);
+  });
+
+  $("#close-win").onclick = () => { stopSpeak(); $("#win").classList.remove("show"); $("#got").classList.add("show"); sfx("tap"); };
+  const again = () => { stopSpeak(); $("#win").classList.remove("show"); build(); sfx("tap"); window.scrollTo({ top: 0, behavior: "smooth" }); };
+  $("#again").onclick = again;
+  $("#again2").onclick = again;
+
+  /* ---------- 音效 ---------- */
+  let sfxOn = true, actx = null;
+  $("#sfx-btn").onclick = () => {
+    sfxOn = !sfxOn;
+    $("#sfx-btn").setAttribute("aria-pressed", String(sfxOn));
+    $("#sfx-t").textContent = sfxOn ? "音效開" : "音效關";
+    if (sfxOn) sfx("tap");
+  };
+  function ctx() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; } catch (e) { return null; } }
+  function tone(c, f, t0, dur, type, vol) {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, c.currentTime + t0);
+    g.gain.setValueAtTime(0.0001, c.currentTime + t0);
+    g.gain.exponentialRampToValueAtTime(vol, c.currentTime + t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t0 + dur);
+    o.connect(g).connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + dur + 0.05);
+  }
+  function sfx(kind) {
+    if (!sfxOn) return;
+    const c = ctx(); if (!c) return;
+    if (kind === "ok") { tone(c, 660, 0, .18, "triangle", .25); tone(c, 880, .12, .18, "triangle", .25); tone(c, 1320, .24, .35, "sine", .2); }
+    else if (kind === "no") { tone(c, 220, 0, .22, "sawtooth", .08); tone(c, 175, .16, .3, "sawtooth", .08); }
+    else if (kind === "tap") { tone(c, 520, 0, .08, "sine", .12); }
+  }
+  function cheerSound() {
+    if (!sfxOn) return;
+    const c = ctx(); if (!c) return;
+    // 寶箱打開的叮叮聲 + 號角小樂句
+    [1568, 1976, 2349, 3136].forEach((f, i) => tone(c, f, .1 + i * .07, .4, "sine", .08));
+    [523, 659, 784, 1047].forEach((f, i) => tone(c, f, .35 + i * .09, i === 3 ? .5 : .14, "triangle", .22));
+    // 人群歡呼：濾波雜訊，快速升起再慢慢淡出
+    const len = Math.floor(c.sampleRate * 1.8), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 + 0.5 * Math.sin(i / c.sampleRate * 2 * Math.PI * (7 + Math.random())));
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1100; bp.Q.value = .7;
+    const g = c.createGain(), t = c.currentTime + .35;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.28, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+    src.connect(bp).connect(g).connect(c.destination); src.start(t); src.stop(t + 1.8);
+    for (let k = 0; k < 4; k++) {
+      const o = c.createOscillator(), og = c.createGain(), t0 = t + 0.15 + Math.random() * .4, f0 = 380 + Math.random() * 260;
+      o.type = "sawtooth"; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f0 * 1.5, t0 + .35);
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+      og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.035, t0 + .05); og.gain.exponentialRampToValueAtTime(0.0001, t0 + .5);
+      o.connect(lp).connect(og).connect(c.destination); o.start(t0); o.stop(t0 + .55);
+    }
+  }
+  let confettiRun = 0;
+  function confetti() {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = $("#confetti"), g = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+    const W = innerWidth, H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cols = ["#E8673C", "#FFE04F", "#141B7A", "#2E8A3A", "#F3835E", "#7A86C9"];
+    const ps = Array.from({ length: 110 }, (_, i) => {
+      const fromLeft = i % 2 === 0;
+      return { x: fromLeft ? -10 : W + 10, y: H * (.55 + Math.random() * .3), vx: (fromLeft ? 1 : -1) * (4 + Math.random() * 7), vy: -(9 + Math.random() * 9), r: 5 + Math.random() * 6, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: cols[i % cols.length], star: i % 5 === 0 };
+    });
+    const id = ++confettiRun, start = performance.now();
+    (function frame(now) {
+      if (id !== confettiRun) return;
+      const el = now - start;
+      g.clearRect(0, 0, W, H);
+      if (el > 3000) return;
+      g.globalAlpha = el > 2300 ? Math.max(0, (3000 - el) / 700) : 1;
+      for (const p of ps) {
+        p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c;
+        if (p.star) { g.beginPath(); for (let k = 0; k < 10; k++) { const rr = k % 2 ? p.r * .45 : p.r * 1.3, an = k * Math.PI / 5 - Math.PI / 2; g.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } g.closePath(); g.fill(); }
+        else g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2);
+        g.restore();
+      }
+      requestAnimationFrame(frame);
+    })(start);
+  }
+
+  /* ---------- 報讀 ---------- */
+  const synth = window.speechSynthesis;
+  let speakingBtn = null, zhVoice = null;
+  function pickVoice() {
+    if (!synth) return;
+    const vs = synth.getVoices();
+    zhVoice = vs.find(v => /zh[-_]TW/i.test(v.lang)) || vs.find(v => /zh[-_](HK|Hant)/i.test(v.lang)) || vs.find(v => /^(zh|cmn)/i.test(v.lang)) || null;
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+  // LINE 內建瀏覽器不能報讀：自動改用手機的預設瀏覽器開啟
+  try {
+    if (window.top === window && /\bLine\//i.test(navigator.userAgent) && /^https?:/.test(location.protocol) && !/openExternalBrowser=1/.test(location.search)) {
+      const u = new URL(location.href); u.searchParams.set("openExternalBrowser", "1"); location.replace(u.href);
+    }
+  } catch (e) {}
+  function stopSpeak() { if (synth) synth.cancel(); if (speakingBtn) speakingBtn.classList.remove("on"); speakingBtn = null; }
+  function notice(msg) {
+    let n = document.getElementById("speak-notice");
+    if (!n) {
+      n = document.createElement("div"); n.id = "speak-notice"; n.setAttribute("role", "alert");
+      n.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:70;max-width:min(92vw,560px);background:#141B7A;color:#fff;padding:14px 20px;border-radius:18px;font-size:1.1rem;line-height:1.6;box-shadow:0 6px 24px rgba(0,0,0,.25)";
+      document.body.appendChild(n);
+    }
+    n.textContent = msg; n.hidden = false;
+    let top = false; try { top = window.top === window; } catch (e) {}
+    if (top && /^https?:/.test(location.protocol) && /Android/i.test(navigator.userAgent)) {
+      const a = document.createElement("a");
+      a.href = `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=${location.protocol.slice(0, -1)};package=com.android.chrome;end`;
+      a.textContent = "用 Chrome 開啟"; a.style.cssText = "display:inline-block;margin-top:8px;background:#FFE04F;color:#141B7A;font-weight:700;padding:4px 14px;border-radius:999px;text-decoration:none";
+      n.appendChild(document.createElement("br")); n.appendChild(a);
+    }
+    clearTimeout(n._t); n._t = setTimeout(() => { n.hidden = true; }, 6000);
+  }
+  // 手機會把太長的一段話念到一半就停，所以切成短句排隊念
+  function chunks(t) {
+    const out = []; let cur = "";
+    t.split(/(?<=[。！？；!?;])/).forEach(p => {
+      if (cur && (cur + p).length > 110) { out.push(cur); cur = p; } else cur += p;
+    });
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+  // 破音字：只改「念出來的音」，畫面上的字不變
+  const PRON = [
+    [/(溫|平|柔|緩|謙)和/g, "$1荷"], [/和(平|諧|藹|善)/g, "荷$1"], [/和/g, "漢"],
+    [/(適|不)當/g, "$1蕩"],               // 不當、適當：ㄉㄤˋ
+    [/(^|[^首京成])都(?!市)/g, "$1兜"],
+    [/調(整|適|節)/g, "條$1"],
+  ];
+  function pron(t) { PRON.forEach(([a, b]) => { t = t.replace(a, b); }); return t; }
+  let speakId = 0;
+  function speak(text, btn) {
+    if (!synth || !window.SpeechSynthesisUtterance) {
+      notice("這個瀏覽器不支援朗讀。請按右上角「⋯」選「用瀏覽器開啟」，改用 Chrome 或 Safari 開這個網頁。");
+      return;
+    }
+    if (speakingBtn === btn) { stopSpeak(); return; }
+    if (synth.speaking || synth.pending) synth.cancel();
+    if (speakingBtn) speakingBtn.classList.remove("on");
+    speakingBtn = null;
+    if (!zhVoice) pickVoice();
+    const id = ++speakId;
+    const parts = chunks(pron(text.replace(/✓|✕|🎉|🎬/g, "").replace(/\s+/g, " ")));
+    let started = false;
+    parts.forEach((p, k) => {
+      const u = new SpeechSynthesisUtterance(p);
+      u.lang = "zh-TW"; if (zhVoice) u.voice = zhVoice; u.rate = 0.95; u.volume = 1;
+      u.onstart = () => { started = true; };
+      if (k === parts.length - 1) u.onend = () => { if (id === speakId && speakingBtn === btn) stopSpeak(); };
+      u.onerror = e => { if (id === speakId && speakingBtn === btn && e.error !== "interrupted" && e.error !== "canceled") stopSpeak(); };
+      synth.speak(u);
+    });
+    speakingBtn = btn; if (btn) btn.classList.add("on");
+    if (synth.paused) synth.resume();
+    setTimeout(() => {
+      if (id === speakId && !started && !synth.speaking) {
+        stopSpeak();
+        notice("沒有聽到聲音嗎？請確認：手機不是靜音模式、媒體音量有開大；Android 請到「設定 → 文字轉語音」確認已安裝中文語音。");
+      }
+    }, 3000);
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-read]");
+    if (!b) return;
+    const text = Array.from(document.querySelectorAll(b.dataset.read)).map(el => el.innerText.replace(/\n/g, "")).join("。");
+    speak(text, b);
+  });
+
+
+  build();
+})();
+</script>
+</body>
+</html>
