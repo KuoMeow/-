@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>打地鼠</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@400;500;700;900&display=swap">
+<style>
+/* 和看見星世界系列同一套配色：淺藍灰底、深藍字、橘色重點；只用淺色主題 */
+:root {
+  --paper: #DEE5EE;
+  --card: #F7F9FB;
+  --navy: #141B7A;
+  --ink: #1E2748;
+  --muted: #3B4260;
+  --orange: #E8673C;
+  --coral: #F3835E;
+  --yellow: #FFE04F;
+  --sky: #CFDDF0;
+  --line: #B9C8DC;
+  --green: #1F6E2A;
+  --ok-bg: #E5F5E2;
+  --no-bg: #FDE9E0;
+  --grass: #C6E8C9;
+  --soil: #8A5A35;
+  --f-display: "Huninn", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  --f-body: "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+  color-scheme: only light;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; }
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 18px;
+  line-height: 1.6;
+  min-height: 100vh;
+  min-height: 100dvh;
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+.wrap { max-width: 1040px; margin: 0 auto; padding: 12px 16px 24px; padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+
+/* 頂部 */
+.top { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.station { display: inline-flex; align-items: center; gap: 8px; background: var(--navy); color: #fff; font-family: var(--f-display); font-size: 1.05rem; padding: 4px 16px 4px 6px; border-radius: 999px; white-space: nowrap; }
+.station .no { background: var(--yellow); color: var(--navy); width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; }
+.top .grow { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 6px; border: 3px solid var(--navy); background: #fff; color: var(--navy); font-weight: 700; font-size: 1rem; padding: 4px 14px; border-radius: 999px; white-space: nowrap; }
+.pill svg { width: 20px; height: 20px; }
+.pill.on { background: var(--orange); border-color: var(--orange); color: #fff; }
+.pill[aria-pressed="false"] .wave { display: none; }
+
+/* 題目 */
+.hero { display: flex; align-items: center; gap: 8px 14px; flex-wrap: wrap; margin-top: 10px; background: var(--card); border: 3px solid var(--line); border-radius: 24px; padding: 8px 16px; }
+.hero h1 { font-family: var(--f-display); font-weight: 400; color: var(--navy); font-size: clamp(1.5rem, 5vw, 2.2rem); line-height: 1.25; margin: 0; }
+.hero .rule { margin: 0; flex: 1 1 260px; font-weight: 700; color: var(--muted); font-size: clamp(1.02rem, 3vw, 1.2rem); line-height: 1.45; }
+.hero .rule b { color: var(--green); }
+.hero .rule em { font-style: normal; color: #A8401A; }
+.score { display: inline-flex; align-items: center; gap: 6px; font-weight: 900; color: var(--navy); font-size: 1.1rem; }
+.score i { width: 22px; height: 22px; border-radius: 50%; border: 3px solid var(--navy); background: #fff; display: inline-grid; place-items: center; font-style: normal; font-size: .8rem; }
+.score i.done { background: var(--yellow); }
+.clock { display: inline-flex; align-items: center; gap: 4px; background: var(--navy); color: #fff; font-weight: 900; font-size: 1.1rem; padding: 2px 14px; border-radius: 999px; }
+.clock b { font-size: 1.3rem; min-width: 1.6em; text-align: right; }
+.clock.low { background: var(--orange); animation: beat 1s infinite; }
+@keyframes beat { 50% { transform: scale(1.08); } }
+.timebar { position: absolute; left: 0; top: 0; height: 8px; background: var(--orange); border-radius: 0 6px 6px 0; z-index: 6; width: 100%; transform-origin: left; }
+
+/* 草地和地洞 */
+.field { position: relative; margin-top: 10px; background: var(--grass); border: 4px solid var(--navy); border-radius: 28px; padding: 14px 14px 6px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px 18px; overflow: hidden; }
+.hole { position: relative; height: clamp(124px, 15vh, 170px); }
+.pit { position: absolute; z-index: 1; left: 0; right: 0; top: 0; bottom: 18px; clip-path: inset(-400px -80px 0 -80px); }
+.opening { position: absolute; z-index: 0; left: 15%; width: 70%; bottom: 4px; height: 36px; pointer-events: none; }
+.mole { position: absolute; left: 50%; bottom: 0; width: 100%; height: 100%; transform: translate(-50%, calc(100% + 160px)); transition: transform .28s cubic-bezier(.3, 1.4, .5, 1); border: 0; background: none; padding: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; touch-action: manipulation; }
+.mole.up { transform: translate(-50%, 0); }
+.mole.down { transition-duration: .22s; transition-timing-function: ease-in; }
+.mole .sign { position: relative; z-index: 2; width: max-content; max-width: calc(100% + 30px); background: var(--navy); border: 0; border-radius: 14px; padding: 4px 10px; font-family: var(--f-display); color: #fff; font-weight: 700; letter-spacing: .02em; font-size: clamp(1.15rem, 4.2vw, 1.6rem); line-height: 1.25; text-align: center; box-shadow: 0 5px 0 rgba(20, 27, 122, .3); margin-bottom: 4px; }
+.mole svg { width: clamp(66px, 17vw, 96px); height: auto; flex: none; }
+.mole .sign span { display: inline-block; }
+.mole.hit .sign { background: var(--green); }
+.mole.oops .sign { background: #C62828; }
+.mole .fur, .mole .face { transition: fill .15s; }
+.mole.oops .fur { fill: #D32F2F; }
+.mole.oops .face { fill: #EF7B7B; }
+.mole.oops svg { animation: shake .4s; }
+@keyframes shake { 20%, 60% { transform: translateX(-6px); } 40%, 80% { transform: translateX(6px); } }
+.mole .eyes-x { display: none; }
+.mole.hit .eyes-x, .mole.oops .eyes-x { display: inline; }
+.mole.hit .eyes, .mole.oops .eyes { display: none; }
+.mole.hit svg { animation: squash .3s; }
+@keyframes squash { 40% { transform: scaleY(.75) scaleX(1.1); } }
+.lip { position: absolute; z-index: 2; left: 15%; width: 70%; bottom: 4px; height: 36px; pointer-events: none; }
+.boom { position: absolute; z-index: 5; pointer-events: none; font-family: var(--f-display); font-size: 2rem; color: var(--orange); animation: boom .7s ease-out forwards; text-shadow: 0 2px 0 #fff; white-space: nowrap; transform: translate(-50%, -50%); }
+@keyframes boom { to { transform: translate(-50%, -140%) scale(1.3); opacity: 0; } }
+.hammer { position: fixed; z-index: 50; width: 64px; height: 64px; pointer-events: none; transform-origin: 80% 80%; animation: whack .3s ease-out forwards; }
+@keyframes whack { from { transform: translate(-70%, -90%) rotate(-50deg); } 50% { transform: translate(-70%, -90%) rotate(10deg); } to { transform: translate(-70%, -90%) rotate(0deg); opacity: 0; } }
+
+/* 開始畫面 */
+.start { position: absolute; inset: 0; z-index: 8; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(247, 249, 251, .88); text-align: center; padding: 16px; }
+.start[hidden] { display: none; }
+.start p { margin: 0; font-weight: 700; font-size: clamp(1.1rem, 3.6vw, 1.35rem); color: var(--navy); }
+
+/* 打到後的說明 */
+.okbar { display: none; align-items: flex-start; gap: 10px; margin-top: 10px; background: var(--ok-bg); border: 3px solid #9FD19A; border-radius: 20px; padding: 8px 12px; }
+.okbar.show { display: flex; }
+.okbar .t { flex: 1; font-size: clamp(1.05rem, 3.3vw, 1.2rem); }
+.okbar .t b { color: var(--green); font-family: var(--f-display); font-weight: 400; font-size: 1.1em; }
+
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; background: var(--orange); color: #fff; font-family: var(--f-display); font-size: clamp(1.3rem, 4.2vw, 1.6rem); padding: 10px 30px; border-radius: 999px; box-shadow: 0 5px 0 #A8401A; }
+.btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #A8401A; }
+.btn.ghost { background: #fff; color: var(--navy); border: 3px solid var(--navy); box-shadow: 0 5px 0 var(--navy); }
+
+/* 打錯提示：底部卡片 */
+.sheet-bg, .win-bg { position: fixed; inset: 0; z-index: 40; background: rgba(20, 27, 122, .35); display: flex; align-items: flex-end; justify-content: center; padding: 16px; opacity: 0; pointer-events: none; transition: opacity .25s; }
+.sheet-bg.show, .win-bg.show { opacity: 1; pointer-events: auto; }
+.sheet { width: min(680px, 100%); background: var(--no-bg); border: 4px solid var(--orange); border-radius: 28px; padding: 16px 20px 18px; transform: translateY(40px); transition: transform .3s; max-height: 90vh; overflow: auto; }
+.sheet-bg.show .sheet { transform: none; }
+.sheet .head { display: flex; align-items: center; gap: 10px; }
+.sheet .verdict { font-family: var(--f-display); font-size: clamp(1.5rem, 5vw, 2rem); color: #A8401A; flex: 1; line-height: 1.3; }
+.sheet p { margin: 6px 0 12px; font-size: clamp(1.15rem, 3.8vw, 1.35rem); color: var(--ink); }
+
+/* 過關 */
+.win-bg { align-items: center; background: rgba(20, 27, 122, .55); }
+.win { width: min(760px, 100%); max-height: calc(100dvh - 32px); overflow: auto; background: var(--card); border: 5px solid var(--yellow); border-radius: 32px; padding: 18px 20px 22px; text-align: center; transform: scale(.85); transition: transform .35s cubic-bezier(.2, 1.4, .4, 1); }
+.win-bg.show .win { transform: none; }
+.win-title { font-family: var(--f-display); color: var(--green); font-size: clamp(1.9rem, 6.5vw, 2.8rem); line-height: 1.2; margin: 0; text-wrap: balance; }
+.win-body { display: grid; grid-template-columns: 1fr; gap: 6px; align-items: center; justify-items: center; }
+.scene { position: relative; width: min(280px, 66vw); aspect-ratio: 1 / .78; }
+.scene .bigchest { position: absolute; inset: auto 0 0 0; width: 100%; }
+.scene .lid { transform-box: fill-box; transform-origin: 50% 100%; transition: transform .6s cubic-bezier(.3, 1.6, .5, 1) .2s; }
+.win-bg.show .scene .lid { transform: translateY(-14%) rotate(-24deg); }
+.scene .rays { opacity: 0; transform-origin: 160px 150px; transition: opacity .4s .5s; }
+.win-bg.show .scene .rays { opacity: 1; animation: spin 10s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.stamp { position: absolute; left: 50%; top: 2%; width: 50%; transform: translate(-50%, 40%) scale(.2) rotate(-30deg); opacity: 0; transition: transform .7s cubic-bezier(.2, 1.5, .4, 1) .7s, opacity .3s .7s; }
+.win-bg.show .stamp { transform: translate(-50%, 0) scale(1) rotate(-8deg); opacity: 1; }
+.win .exp { background: var(--ok-bg); border: 3px solid #9FD19A; border-radius: 20px; padding: 12px 16px; text-align: left; font-size: clamp(1.05rem, 3.3vw, 1.2rem); margin: 6px 0 0; width: 100%; }
+.win .exp .row { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-family: var(--f-display); color: var(--green); font-size: 1.25rem; }
+.win .exp .row .grow { flex: 1; }
+.win .exp ul { margin: 2px 0 6px; padding-left: 0; list-style: none; }
+.win .exp li { padding-left: 1.5em; position: relative; }
+.win .exp li::before { content: "✓"; position: absolute; left: .2em; color: var(--green); font-weight: 900; }
+.win .exp p { margin: 6px 0 0; }
+.win .exp b { color: var(--navy); }
+.win .show-staff { margin: 12px 0 14px; font-weight: 700; color: var(--navy); font-size: clamp(1.05rem, 3.4vw, 1.2rem); }
+.win .acts { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+.got { display: none; align-items: center; gap: 10px; margin-top: 14px; background: #fff; border: 3px dashed var(--green); border-radius: 22px; padding: 10px 14px; }
+.got.show { display: flex; }
+.got svg { width: 64px; height: 64px; flex: none; }
+.got .t { flex: 1; font-weight: 700; color: var(--green); font-size: 1.1rem; }
+
+#confetti { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 60; }
+
+/* 寬螢幕：三個洞一排 */
+@media (min-width: 640px) {
+  .field { gap: 18px 40px; padding: 18px 28px 8px; }
+  .win-body { grid-template-columns: auto 1fr; gap: 18px; }
+}
+/* 手機橫放（高度很矮）：草地塞滿畫面 */
+@media (orientation: landscape) and (max-height: 520px) {
+  .wrap { padding-top: 6px; padding-bottom: 10px; }
+  .top { display: none; }
+  .hero { margin-top: 0; padding: 4px 14px; gap: 2px 12px; border-radius: 18px; }
+  .hero h1 { font-size: 1.35rem; }
+  .hero .rule { font-size: 1rem; flex: 1 1 auto; }
+  .score i { display: none; }
+  .hero { flex-wrap: nowrap; }
+  .field { margin-top: 6px; padding: 6px 40px 0; gap: 4px 56px; border-radius: 22px; }
+  .hole { height: calc((100dvh - 100px) / 3); min-height: 90px; }
+  .mole .sign { font-size: 1.15rem; padding: 1px 8px; margin-bottom: 2px; }
+  .mole svg { width: 56px; }
+  .lip, .opening { height: 26px; }
+  .pit { bottom: 13px; }
+  .win { padding: 10px 16px 14px; }
+  .win-title { font-size: 1.7rem; }
+  .win-body { grid-template-columns: auto 1fr; gap: 14px; }
+  .scene { width: 170px; }
+  .win .exp { font-size: .98rem; padding: 8px 12px; }
+  .win .show-staff { margin: 6px 0 8px; }
+}
+@media (max-width: 420px) {
+  .mole .sign { font-size: 1.05rem; padding: 3px 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition-duration: .01ms !important; }
+}
+
+/* ===== C版：童話感冒險草原視覺升級 ===== */
+:root { --paper:#eef5fc; --card:#ffffff; --navy:#24326e; --ink:#253352; --muted:#485778; --orange:#eb754d; --coral:#fa9473; --yellow:#ffe17b; --sky:#cfe6ff; --line:#cadbf1; --grass:#c3eec8; --soil:#966143; }
+body { background:radial-gradient(ellipse at 12% 8%,#fff7e8 0,transparent 28%),radial-gradient(ellipse at 90% 25%,#dcf0ff 0,transparent 38%),linear-gradient(160deg,#eff7ff,#e8effb 70%,#f8f0e9); }
+.wrap { max-width:1080px; padding-top:22px; }
+.top { margin-bottom:14px; }
+.station { padding:7px 20px 7px 8px; border:2px solid rgba(255,255,255,.8); box-shadow:0 7px 20px rgba(36,50,110,.15); background:linear-gradient(120deg,#23336e,#5365a3); letter-spacing:.03em; }
+.station .no { width:36px;height:36px; background:linear-gradient(135deg,#fff3a9,#ffd46d); box-shadow: inset 0 -3px 0 rgba(175,115,35,.14); font-weight:900; }
+.pill { background:#fff; border:2px solid #b6c9e5; box-shadow:0 3px 0 rgba(36,50,110,.09); transition:transform .18s, background .18s; }
+.pill:hover { background:#f3f8ff; transform:translateY(-2px); }
+.pill:focus-visible,.btn:focus-visible,.mole:focus-visible { outline:4px solid #ffab3a; outline-offset:4px; }
+.hero { position:relative; background:linear-gradient(120deg,#ffffff 60%,#f7faff); border:2px solid #d4e0f0; padding:17px 22px; gap:12px 18px; border-radius:26px; box-shadow:0 10px 28px rgba(55,75,120,.09),inset 0 1px 0 #fff; }
+.hero h1 { color:#263878; font-size:clamp(1.75rem,4.5vw,2.5rem); letter-spacing:.03em; text-shadow:1px 2px 0 #e6edfa; }
+.hero .rule { font-size:clamp(1rem,2.7vw,1.2rem); }
+.hero .rule b { color:#25784d; }
+.hero .rule em { color:#ad4e28; }
+.score { padding:6px 10px;background:#fff8e9; border:2px solid #f4dfb6;border-radius:16px; }
+.score i { border:2px solid #c3cee5; width:23px;height:23px;background:#fff; color:#273976; }
+.score i.done { border-color:#e9ab44;background:#ffdf77; box-shadow:0 2px 0 rgba(156,105,21,.17); }
+.clock { background:linear-gradient(125deg,#30427f,#6173aa); padding:6px 14px;box-shadow:0 4px 0 #d3dcec; }
+.field { isolation:isolate; margin-top:16px; padding:35px 22px 20px; border:4px solid #f8fefd; outline:2px solid #9bcfa8; border-radius:32px; gap:12px 18px; box-shadow:0 15px 30px rgba(54,93,72,.15),inset 0 8px 16px rgba(255,255,255,.38); background:radial-gradient(ellipse at 18% 76%,#b4e7ba 0 9%,transparent 9.5%),radial-gradient(ellipse at 83% 32%,#afe4b4 0 13%,transparent 13.5%),linear-gradient(#dff6e3,#bce9c1 72%,#a8ddb0); }
+.field::before { content:'✿     ✦             ✿                 ✧       ✿'; position:absolute; left:2%;right:2%;top:9px; color:#fff0a9; font-size:22px;letter-spacing:clamp(5px,4vw,40px);text-shadow:1px 2px 0 #e9ad88; pointer-events:none; white-space:nowrap;overflow:hidden;opacity:.85; }
+.field::after { content:'❀'; position:absolute;right:2%;bottom:7%; font-size:26px;color:#fff9e4;text-shadow:1px 2px 0 #eca2a9;pointer-events:none; }
+.timebar { height:10px; background:linear-gradient(90deg,#ffe88d,#ffbd6f,#ee8159);box-shadow:0 2px 7px rgba(209,111,61,.25); }
+.hole { filter:drop-shadow(0 3px 2px rgba(80,85,46,.06)); }
+.opening { filter:drop-shadow(0 6px 2px rgba(58,70,48,.18)); }
+.mole .sign { border:2px solid rgba(255,255,255,.75);background:linear-gradient(155deg,#334781,#24346e); border-radius:16px; padding:7px 13px; font-size:clamp(1.05rem,3.8vw,1.48rem); line-height:1.34; box-shadow:0 6px 0 rgba(23,40,85,.22),0 6px 14px rgba(25,41,69,.15); text-shadow:0 1px 1px rgba(0,0,0,.15); transition:background .15s,transform .15s; }
+.mole.up:hover .sign { transform:translateY(-3px);background:linear-gradient(145deg,#4865a3,#2a3e80); }
+.mole.hit .sign { background:linear-gradient(145deg,#319c6b,#1d7653); }
+.mole.oops .sign { background:linear-gradient(145deg,#ed716a,#c94d55); }
+.mole svg { filter:drop-shadow(0 3px 1px rgba(87,50,34,.15)); }
+.start { z-index:8; gap:18px; background:linear-gradient(145deg,rgba(255,255,255,.93),rgba(240,250,246,.91));backdrop-filter:blur(7px);border-radius:25px; }
+.start::before { content:'🌼  🌿  🌼'; font-size:clamp(2rem,5vw,3rem);filter:drop-shadow(0 5px 3px #dae8c5); }
+.start p { max-width:560px;padding:0 15px;font-size:clamp(1.16rem,3.6vw,1.5rem);line-height:1.7; }
+.btn { background:linear-gradient(165deg,#f68a5f,#dc6241); font-size:clamp(1.17rem,3.8vw,1.5rem); padding:12px 28px; box-shadow:0 5px 0 #ae4930,0 10px 20px rgba(191,90,54,.2);font-weight:700;transition:transform .16s,filter .16s; }
+.btn:hover { filter:brightness(1.05);transform:translateY(-2px); }
+.btn.ghost { background:linear-gradient(#fff,#f5f8ff);border:2px solid var(--navy); }
+.okbar,.got { box-shadow:0 8px 24px rgba(53,104,75,.09);border-width:2px; padding:12px 16px; }
+.sheet { background:linear-gradient(150deg,#fffaf3,#ffe7dc);box-shadow:0 20px 50px rgba(15,24,61,.25); }
+.win { background:linear-gradient(145deg,#fffefc,#f5faff); box-shadow:0 22px 70px rgba(9,24,67,.35);border:5px solid #ffe49a; }
+.win-title { color:#2c805c;text-shadow:0 2px 0 #ddf5de; }
+.win .exp { background:#f0faed; border:2px solid #b3d9ac; }
+@media (min-width:640px) { .field { padding:38px 35px 23px; gap:14px 32px; } .hole {height:clamp(134px,16vh,176px);} }
+@media (max-width:639px) { .wrap{padding-top:10px} .hero{padding:12px 13px;gap:9px} .field{padding:30px 5px 13px;gap:8px 2px} .hole{height:clamp(115px,14.5vh,155px)} .mole .sign{padding:5px 6px;max-width:calc(100% + 13px);font-size:clamp(.89rem,3.25vw,1.25rem)} .score{padding:4px 6px;gap:3px} .score i{width:18px;height:18px;font-size:.65rem;} }
+@media (orientation:landscape) and (max-height:520px) { .wrap{padding-top:5px}.field{margin-top:6px;padding:6px 34px 0;gap:4px 42px}.hole{height:calc((100dvh - 102px)/3);min-height:85px}.mole .sign{font-size:1rem;padding:2px 7px}.field::before{display:none}.hero{padding:4px 10px}.score{padding:2px 5px} }
+
+/* 「自閉症的特徵」紅色加大 */
+.hero .rule b { color: #D62828; font-size: 1.35em; font-weight: 900; }
+/* 開始畫面：兩種玩法 */
+.modes { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.timebar.off { display: none; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-spk" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path class="wave" d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-sfx" viewBox="0 0 24 24"><path d="M9 18V6l11-2v12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/><circle cx="6.5" cy="18" r="2.8" fill="currentColor"/><circle cx="17.5" cy="16" r="2.8" fill="currentColor"/></symbol>
+    <clipPath id="lens"><circle cx="230" cy="220" r="118"/></clipPath>
+    <!-- 特質：放大鏡看人（與 treasure-icons/02-traits-magnifier.svg 相同） -->
+    <symbol id="i-mag" viewBox="0 0 512 512">
+      <g stroke="#1E2748" stroke-width="10" stroke-linecap="round" stroke-linejoin="round">
+        <ellipse cx="256" cy="452" rx="170" ry="20" fill="#B9C8DC" stroke="none" opacity=".7"/>
+        <path d="M110,440 C110,350 160,310 220,310 C280,310 330,350 330,440 Z" fill="#7FA6D9"/>
+        <path d="M190,318 L220,352 L250,318" fill="none" stroke-width="8"/>
+        <circle cx="220" cy="230" r="66" fill="#FBE3CF"/>
+        <path d="M154,226 C150,170 196,150 230,156 C268,160 292,190 286,228 C266,206 236,196 204,200 C186,204 168,214 154,226 Z" fill="#1E2748"/>
+        <circle cx="198" cy="242" r="9" fill="#1E2748" stroke="none"/>
+        <circle cx="246" cy="242" r="9" fill="#1E2748" stroke="none"/>
+        <path d="M206,270 Q222,282 238,270" fill="none" stroke-width="7"/>
+        <ellipse cx="178" cy="264" rx="11" ry="7" fill="#F3835E" stroke="none" opacity=".75"/>
+        <ellipse cx="266" cy="264" rx="11" ry="7" fill="#F3835E" stroke="none" opacity=".75"/>
+        <g clip-path="url(#lens)" stroke="none">
+          <circle cx="230" cy="220" r="118" fill="#E3EEFF" opacity=".35"/>
+          <path d="M150,170 A100,100 0 0 1 212,120" fill="none" stroke="#fff" stroke-width="14" opacity=".9"/>
+          <path d="M296,140 l6,17 17,6 -17,6 -6,17 -6,-17 -17,-6 17,-6 Z" fill="#FFE04F" stroke="#1E2748" stroke-width="5"/>
+          <path d="M140,300 l5,13 13,5 -13,5 -5,13 -5,-13 -13,-5 13,-5 Z" fill="#FFE04F" stroke="#1E2748" stroke-width="5"/>
+        </g>
+        <path d="M318,308 L354,344" stroke="#1E2748" stroke-width="34"/>
+        <path d="M350,340 L436,426" stroke="#1E2748" stroke-width="54"/>
+        <path d="M350,340 L436,426" stroke="#E8673C" stroke-width="36"/>
+        <circle cx="230" cy="220" r="118" fill="none" stroke="#1E2748" stroke-width="26"/>
+        <circle cx="230" cy="220" r="118" fill="none" stroke="#F3835E" stroke-width="10"/>
+        <path d="M440,70 l8,22 22,8 -22,8 -8,22 -8,-22 -22,-8 22,-8 Z" fill="#E8673C" stroke-width="6"/>
+      </g>
+    </symbol>
+    <symbol id="i-stamp" viewBox="0 0 200 200">
+      <circle cx="100" cy="100" r="94" fill="#fff" stroke="#E8673C" stroke-width="8"/>
+      <circle cx="100" cy="100" r="80" fill="none" stroke="#E8673C" stroke-width="3" stroke-dasharray="6 6"/>
+      <use href="#i-mag" x="48" y="24" width="104" height="104"/>
+      <rect x="38" y="128" width="124" height="40" rx="20" fill="#E8673C"/>
+      <text x="100" y="157" text-anchor="middle" font-family="Huninn, 'Noto Sans TC', sans-serif" font-size="26" fill="#fff" letter-spacing="3">特質 ✓</text>
+    </symbol>
+    <symbol id="i-hammer" viewBox="0 0 64 64">
+      <g stroke="#1E2748" stroke-width="3" stroke-linejoin="round">
+        <rect x="30" y="22" width="8" height="38" rx="3" fill="#D9874D" transform="rotate(-35 34 41)"/>
+        <rect x="4" y="6" width="40" height="22" rx="6" fill="#E8673C" transform="rotate(-35 24 17)"/>
+        <rect x="8" y="10" width="8" height="14" rx="2" fill="#FFE04F" transform="rotate(-35 24 17)"/>
+      </g>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="wrap">
+  <header class="top">
+    <span class="station"><span class="no">2</span>藏寶圖第二站：特質</span>
+    <span class="grow"></span>
+    <button class="pill" id="sfx-btn" type="button" aria-pressed="true"><svg aria-hidden="true"><use href="#i-sfx"/></svg><span id="sfx-t">音效開</span></button>
+  </header>
+
+  <section class="hero" aria-labelledby="q">
+    <h1 id="q">打地鼠</h1>
+    <p class="rule" id="rule">看到「<b>自閉症的特徵</b>」就打！</p>
+    <span class="score" id="score" aria-live="polite"></span>
+    <span class="clock" id="clock"><span aria-hidden="true">⏱</span><b id="sec">60</b> 秒</span>
+    <button class="pill" type="button" data-read="#q,#rule" aria-label="報讀遊戲說明"><svg aria-hidden="true"><use href="#i-spk"/></svg>報讀</button>
+  </section>
+
+  <div class="field" id="field">
+    <div class="timebar" id="timebar"></div>
+    <div class="start" id="start">
+      <p id="start-p">打中 5 個自閉症的特徵就過關！選一種玩法：</p>
+      <div class="modes">
+        <button class="btn" type="button" id="go">⏱ 限時 1 分鐘</button>
+        <button class="btn ghost" type="button" id="go-free">🐢 不限時</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="okbar" id="okbar" role="status">
+    <span class="t" id="ok-t"></span>
+    <button class="pill" type="button" data-read="#ok-t" aria-label="報讀說明"><svg aria-hidden="true"><use href="#i-spk"/></svg>報讀</button>
+  </div>
+
+  <div class="got" id="got" role="status">
+    <svg aria-hidden="true"><use href="#i-stamp"/></svg>
+    <span class="t">🎉 恭喜過關！</span>
+    <button class="pill" type="button" id="again2">再玩一次</button>
+  </div>
+</div>
+
+<!-- 時間到 -->
+<div class="sheet-bg" id="timeup" role="dialog" aria-modal="true" aria-labelledby="tu-v">
+  <div class="sheet">
+    <div class="head"><span class="verdict" id="tu-v">時間到！</span></div>
+    <p id="tu-p"></p>
+    <button class="btn" type="button" id="retry">再挑戰一次</button>
+  </div>
+</div>
+
+<!-- 過關 -->
+<div class="win-bg" id="win" role="dialog" aria-modal="true" aria-labelledby="win-t">
+  <div class="win">
+    <h2 class="win-title" id="win-t">全部打中了！寶箱打開囉！</h2>
+    <div class="win-body">
+      <div class="scene">
+        <svg class="bigchest" viewBox="0 0 320 250" aria-hidden="true" id="big-chest"></svg>
+        <svg class="stamp" viewBox="0 0 200 200" role="img" aria-label="特質關卡章"><use href="#i-stamp"/></svg>
+      </div>
+      <div class="exp">
+        <div class="row"><span class="grow">✓ 自閉症的特徵</span><button class="pill" type="button" data-read="#exp-p" aria-label="報讀說明"><svg aria-hidden="true"><use href="#i-spk"/></svg>報讀</button></div>
+        <div id="exp-p">
+          <ul id="exp-list"></ul>
+          <p>每個人的特質和程度都不一樣。<b>看見了，就更懂得怎麼相處。</b></p>
+        </div>
+      </div>
+    </div>
+    <p class="show-staff">🎉 恭喜過關！</p>
+    <div class="acts">
+      <button class="btn" type="button" id="close-win">好！</button>
+      <button class="btn ghost" type="button" id="again">再玩一次</button>
+    </div>
+  </div>
+</div>
+
+<canvas id="confetti" aria-hidden="true"></canvas>
+
+<script>
+(() => {
+  const $ = s => document.querySelector(s);
+
+  /* ---------- 地鼠上的字：正確要打、錯誤別打 ---------- */
+  const RIGHT = [
+    { t: "社會互動|困難", d: "跟別人互動、交朋友、讀懂別人的表情和心情，比較困難。" },
+    { t: "溝通困難", d: "比較難聽懂玩笑、反話和暗示，或是不明確的話。" },
+    { t: "固定或重複的|行為", d: "喜歡固定的流程，像是每天走同一條路，突然改變會很不安。" },
+    { t: "固定或重複的|興趣", d: "對特定主題有很深、很專一的興趣，例如火車、恐龍。" },
+    { t: "感官刺激|過度敏感", d: "有些人對聲音、光線、氣味、衣物觸感特別敏感，別人覺得還好，他可能覺得很難受。" },
+  ];
+  const WRONG = [
+    { t: "喜歡探索|不同活動", d: "自閉症者常常有固定、專一的興趣，比較喜歡熟悉的事，不是一直想換不同的活動。" },
+    { t: "數學學習|困難", d: "數學學習困難不是自閉症的特徵。自閉症者的學習能力各不相同，有些人數學反而很好。" },
+    { t: "眼睛常|看不清楚", d: "看不清楚是視力的問題，跟自閉症沒有關係。" },
+    { t: "智力|一定很低", d: "自閉症者的智力有高有低，和一般人一樣各不相同。" },
+    { t: "一定很|容易生氣", d: "自閉症不等於愛生氣。有時候情緒變大，是因為環境太吵、太亮，或是計畫突然改變讓人很不安。" },
+  ];
+  // 「|」是牌子上可以換行的地方，其他地方不斷行
+  [...RIGHT, ...WRONG].forEach(x => { x.p = x.t.split("|"); x.t = x.p.join(""); });
+  const HOLES = 9, UP_MS = 2000, GAP_MS = 1300, MAX_UP = 2, LIMIT = 60;
+
+  function chestSVG() {
+    return `
+      <g class="rays" fill="#FFE04F" opacity=".8">
+        ${Array.from({ length: 12 }, (_, i) => `<path d="M160 150 L${160 + 170 * Math.cos((i * 30 - 4) * Math.PI / 180)} ${150 + 170 * Math.sin((i * 30 - 4) * Math.PI / 180)} L${160 + 170 * Math.cos((i * 30 + 4) * Math.PI / 180)} ${150 + 170 * Math.sin((i * 30 + 4) * Math.PI / 180)} Z"/>`).join("")}
+      </g>
+      <ellipse cx="160" cy="236" rx="128" ry="12" fill="#141B7A" opacity=".15"/>
+      <g stroke="#1E2748" stroke-width="6" stroke-linejoin="round">
+        <rect x="44" y="130" width="232" height="104" rx="12" fill="#C9763E"/>
+        <rect x="44" y="130" width="232" height="22" fill="#A85C2C"/>
+        <rect x="70" y="130" width="22" height="104" fill="#FFC93C"/>
+        <rect x="228" y="130" width="22" height="104" fill="#FFC93C"/>
+        <path d="M140 150 h40 v34 a20 20 0 0 1 -40 0 Z" fill="#FFE04F"/>
+        <circle cx="160" cy="170" r="6" fill="#1E2748" stroke="none"/>
+        <g class="lid">
+          <path d="M40 132 V100 Q40 50 160 50 Q280 50 280 100 V132 Z" fill="#D9874D"/>
+          <path d="M70 132 V68 Q78 58 92 56 V132 Z M228 132 V56 Q242 58 250 68 V132 Z" fill="#FFC93C"/>
+          <path d="M140 132 v-20 h40 v20" fill="#FFE04F"/>
+        </g>
+      </g>
+      <path d="M20 40 l5 12 12 5 -12 5 -5 12 -5 -12 -12 -5 12 -5 Z" fill="#FFE04F" stroke="#1E2748" stroke-width="3"/>
+      <path d="M296 70 l4 9 9 4 -9 4 -4 9 -4 -9 -9 -4 9 -4 Z" fill="#E8673C" stroke="#1E2748" stroke-width="3"/>`;
+  }
+  $("#big-chest").innerHTML = chestSVG();
+  $("#exp-list").innerHTML = RIGHT.map(r => `<li>${r.t}</li>`).join("");
+
+     const MOLE = `<g stroke="#533b48" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round">
+         <circle cx="28" cy="35" r="18" fill="#a66a58"/><circle cx="92" cy="35" r="18" fill="#a66a58"/>
+         <circle cx="28" cy="35" r="10" fill="#f5b1af" stroke="none"/><circle cx="92" cy="35" r="10" fill="#f5b1af" stroke="none"/>
+         <path class="fur" d="M16 100 V63 C16 27 34 15 60 15 C86 15 104 27 104 63 V100 Z" fill="#a66a58"/>
+         <path class="face" d="M29 100 V72 C29 52 42 43 60 43 C78 43 91 52 91 72 V100 Z" fill="#eac4a6" stroke="none"/>
+         <path d="M38 29 Q60 16 82 29" fill="none" stroke="#bf856e" stroke-width="4"/>
+         <g class="eyes"><ellipse cx="45" cy="49" rx="6" ry="7" fill="#322c41" stroke="none"/><ellipse cx="75" cy="49" rx="6" ry="7" fill="#322c41" stroke="none"/><circle cx="47" cy="46" r="2.2" fill="white" stroke="none"/><circle cx="77" cy="46" r="2.2" fill="white" stroke="none"/></g>
+         <g class="eyes-x" stroke-width="3.5" stroke="#433044"><path d="M40 45 l10 10 M50 45 l-10 10 M70 45 l10 10 M80 45 l-10 10"/></g>
+         <ellipse cx="33" cy="65" rx="9" ry="5" fill="#ef9996" stroke="none" opacity=".8"/><ellipse cx="87" cy="65" rx="9" ry="5" fill="#ef9996" stroke="none" opacity=".8"/>
+         <ellipse cx="60" cy="61" rx="11" ry="7" fill="#89566a" stroke="none"/><path d="M54 72 Q60 78 66 72" fill="none" stroke="#7d4c52" stroke-width="2.5"/>
+         <path d="M33 66 L18 61 M33 71 L16 73 M87 66 L102 61 M87 71 L104 73" stroke="#fff2df" stroke-width="2"/>
+         <rect x="55" y="74" width="10" height="9" rx="2" fill="#fffaf1" stroke-width="2"/>
+         <path d="M18 100 C15 87 27 82 37 87 Q45 92 44 100 Z" fill="#d6a48e"/><path d="M102 100 C105 87 93 82 83 87 Q75 92 76 100 Z" fill="#d6a48e"/>
+       </g>`;
+  $("#field").insertAdjacentHTML("beforeend", Array.from({ length: HOLES }, (_, i) => `
+    <div class="hole">
+      <svg class="opening" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true"><ellipse cx="100" cy="14" rx="96" ry="12" fill="#3B2A1E" stroke="#1E2748" stroke-width="3"/></svg>
+      <div class="pit"><button class="mole" type="button" data-i="${i}" tabindex="-1" aria-hidden="true"><span class="sign"></span><svg viewBox="0 0 120 100">${MOLE}</svg></button></div>
+      <svg class="lip" viewBox="0 0 200 36" preserveAspectRatio="none" aria-hidden="true">
+        <path d="M2 14 Q100 40 198 14 L198 22 Q100 50 2 22 Z" fill="#8A5A35" stroke="#1E2748" stroke-width="3"/>
+      </svg>
+    </div>`).join(""));
+  const moles = Array.from(document.querySelectorAll(".mole"));
+
+  /* ---------- 遊戲流程 ---------- */
+  let running = false, paused = false, hitSet = new Set(), timer = null, lastWord = "";
+  const state = moles.map(() => ({ up: false, item: null, ok: false, t: null }));
+  function score() {
+    $("#score").innerHTML = RIGHT.map((_, i) => `<i class="${i < hitSet.size ? "done" : ""}">${i < hitSet.size ? "★" : ""}</i>`).join("") + `<span>${hitSet.size} / ${RIGHT.length}</span>`;
+  }
+  function pick() {
+    // 還沒打到的正確答案出現得多一點，錯誤答案也會穿插
+    const left = RIGHT.filter(r => !hitSet.has(r.t));
+    const showing = state.filter(s => s.up).map(s => s.item.t);
+    const wantRight = Math.random() < 0.6;
+    let pool = wantRight && left.length ? left.map(r => ({ ...r, ok: true })) : WRONG.map(w => ({ ...w, ok: false }));
+    pool = pool.filter(p => !showing.includes(p.t) && p.t !== lastWord);
+    if (!pool.length) pool = (left.length ? left.map(r => ({ ...r, ok: true })) : WRONG.map(w => ({ ...w, ok: false }))).filter(p => !showing.includes(p.t));
+    const it = pool[Math.floor(Math.random() * pool.length)];
+    if (it) lastWord = it.t;
+    return it;
+  }
+  function popOne() {
+    if (!running || paused) return;
+    const free = state.map((s, i) => s.up ? -1 : i).filter(i => i >= 0);
+    if (state.filter(s => s.up).length >= MAX_UP || !free.length) return;
+    const i = free[Math.floor(Math.random() * free.length)];
+    const it = pick(); if (!it) return;
+    const m = moles[i], s = state[i];
+    s.up = true; s.item = it;
+    m.classList.remove("hit", "oops", "down");
+    m.querySelector(".sign").innerHTML = it.p.map(w => `<span>${w}</span>`).join("");
+    m.setAttribute("aria-hidden", "false"); m.tabIndex = 0; m.setAttribute("aria-label", it.t);
+    requestAnimationFrame(() => m.classList.add("up"));
+    s.t = setTimeout(() => hide(i), UP_MS);
+  }
+  function hide(i, delay = 0) {
+    const m = moles[i], s = state[i];
+    clearTimeout(s.t);
+    s.t = setTimeout(() => {
+      m.classList.add("down"); m.classList.remove("up");
+      m.setAttribute("aria-hidden", "true"); m.tabIndex = -1;
+      setTimeout(() => { s.up = false; }, 260);
+    }, delay);
+  }
+  function tick() { popOne(); timer = setTimeout(tick, GAP_MS + Math.random() * 600); }
+  let timed = true;
+  function start(useTimer) {
+    if (typeof useTimer === "boolean") timed = useTimer;
+    $("#timebar").classList.toggle("off", !timed);
+    hitSet = new Set(); lastWord = ""; score();
+    moles.forEach((m, i) => { clearTimeout(state[i].t); state[i].up = false; m.classList.remove("up", "hit", "oops", "down"); m.setAttribute("aria-hidden", "true"); m.tabIndex = -1; });
+    $("#start").hidden = true; $("#timeup").classList.remove("show"); $("#clock").classList.remove("low"); $("#okbar").classList.remove("show"); $("#got").classList.remove("show");
+    running = true; paused = false; ctx(); sfx("tap");
+    clearTimeout(timer); timer = setTimeout(tick, 400);
+    startClock();
+  }
+  function stop() { running = false; clearTimeout(timer); clearInterval(clockT); }
+  // 計時：看說明的時候暫停
+  let left = LIMIT, clockT = null, lastNow = 0;
+  function showClock() {
+    if (!timed) { $("#clock").innerHTML = `<span aria-hidden="true">🐢</span>不限時`; return; }
+    if (!$("#sec")) $("#clock").innerHTML = `<span aria-hidden="true">⏱</span><b id="sec"></b> 秒`;
+    $("#sec").textContent = Math.ceil(left);
+    $("#clock").classList.toggle("low", left <= 10 && running);
+    $("#timebar").style.transform = `scaleX(${Math.max(0, left / LIMIT)})`;
+  }
+  function startClock() {
+    left = LIMIT; showClock(); lastNow = performance.now();
+    clearInterval(clockT);
+    clockT = setInterval(() => {
+      const now = performance.now(), dt = (now - lastNow) / 1000; lastNow = now;
+      if (!running || paused || !timed) return;
+      const before = Math.ceil(left);
+      left -= dt; showClock();
+      if (Math.ceil(left) !== before && left <= 5 && left > 0) sfx("tap");
+      if (left <= 0) timeUp();
+    }, 100);
+  }
+  function timeUp() {
+    left = 0; stop(); showClock();
+    moles.forEach((m, i) => hide(i));
+    sfx("no");
+    $("#tu-p").textContent = `你打中了 ${hitSet.size} 個特徵，還差 ${RIGHT.length - hitSet.size} 個。再挑戰一次，1 分鐘內打中 5 個特徵就過關！`;
+    $("#timeup").classList.add("show"); $("#retry").focus();
+  }
+  $("#retry").onclick = () => { $("#timeup").classList.remove("show"); start(true); };
+
+  function sayOops() {
+    if (!window.speechSynthesis || !window.SpeechSynthesisUtterance) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance("唉呀，打錯了！");
+    u.lang = "zh-TW"; u.rate = 1.05;
+    const v = speechSynthesis.getVoices().find(v => /zh[-_]TW/i.test(v.lang)) || speechSynthesis.getVoices().find(v => /^(zh|cmn)/i.test(v.lang));
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  }
+  function hammerAt(x, y) {
+    const h = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    h.setAttribute("class", "hammer"); h.setAttribute("viewBox", "0 0 64 64");
+    h.innerHTML = '<use href="#i-hammer"/>';
+    h.style.left = x + "px"; h.style.top = y + "px";
+    document.body.appendChild(h); setTimeout(() => h.remove(), 320);
+  }
+  function boomAt(m, text) {
+    const r = m.closest(".hole").getBoundingClientRect(), f = $("#field").getBoundingClientRect();
+    const b = document.createElement("span"); b.className = "boom"; b.textContent = text;
+    b.style.left = (r.left - f.left + r.width / 2) + "px"; b.style.top = (r.top - f.top + 24) + "px";
+    $("#field").appendChild(b); setTimeout(() => b.remove(), 720);
+  }
+  moles.forEach((m, i) => m.addEventListener("pointerdown", e => {
+    const s = state[i];
+    if (!running || paused || !s.up || !m.classList.contains("up") || m.classList.contains("hit") || m.classList.contains("oops")) return;
+    e.preventDefault();
+    hammerAt(e.clientX, e.clientY);
+    stopSpeak();
+    const it = s.item;
+    if (it.ok) {
+      m.classList.add("hit"); sfx("bonk"); sfx("ok");
+      hitSet.add(it.t); score();
+      $("#ok-t").innerHTML = `<b>✓ 打得好！「${it.t}」</b>是自閉症的特徵。${it.d}`;
+      $("#okbar").classList.add("show");
+      hide(i, 450);
+      if (hitSet.size === RIGHT.length) {
+        stop();
+        setTimeout(() => { $("#win").classList.add("show"); cheerSound(); confetti(); $("#close-win").focus(); }, 900);
+      }
+    } else {
+      // 打錯：地鼠變紅、說「唉呀，打錯了」，遊戲不中斷
+      m.classList.add("oops"); sfx("bonk"); sfx("no");
+      sayOops();
+      hide(i, 700);
+    }
+  }));
+  // 鍵盤：Enter / 空白鍵也能打
+  moles.forEach(m => m.addEventListener("keydown", e => {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); const r = m.getBoundingClientRect(); m.dispatchEvent(new PointerEvent("pointerdown", { clientX: r.left + r.width / 2, clientY: r.top + r.height / 2, bubbles: true })); }
+  }));
+  $("#go").onclick = () => start(true);
+  $("#go-free").onclick = () => start(false);
+  $("#close-win").onclick = () => { stopSpeak(); $("#win").classList.remove("show"); $("#got").classList.add("show"); sfx("tap"); };
+  const again = () => { stopSpeak(); $("#win").classList.remove("show"); sfx("tap"); window.scrollTo({ top: 0, behavior: "smooth" }); stop(); moles.forEach((m, i) => hide(i)); $("#got").classList.remove("show"); $("#okbar").classList.remove("show"); $("#start").hidden = false; };
+  $("#again").onclick = again;
+  $("#again2").onclick = again;
+  document.addEventListener("visibilitychange", () => { if (document.hidden && running) { paused = true; } else if (!document.hidden && running && !$("#timeup").classList.contains("show")) paused = false; });
+
+  /* ---------- 音效 ---------- */
+  let sfxOn = true, actx = null;
+  $("#sfx-btn").onclick = () => {
+    sfxOn = !sfxOn;
+    $("#sfx-btn").setAttribute("aria-pressed", String(sfxOn));
+    $("#sfx-t").textContent = sfxOn ? "音效開" : "音效關";
+    if (sfxOn) sfx("tap");
+  };
+  function ctx() { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === "suspended") actx.resume(); return actx; } catch (e) { return null; } }
+  function tone(c, f, t0, dur, type, vol) {
+    const o = c.createOscillator(), g = c.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, c.currentTime + t0);
+    g.gain.setValueAtTime(0.0001, c.currentTime + t0);
+    g.gain.exponentialRampToValueAtTime(vol, c.currentTime + t0 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + t0 + dur);
+    o.connect(g).connect(c.destination); o.start(c.currentTime + t0); o.stop(c.currentTime + t0 + dur + 0.05);
+  }
+  function sfx(kind) {
+    if (!sfxOn) return;
+    const c = ctx(); if (!c) return;
+    if (kind === "ok") { tone(c, 660, 0, .18, "triangle", .25); tone(c, 880, .12, .18, "triangle", .25); tone(c, 1320, .24, .35, "sine", .2); }
+    else if (kind === "no") { tone(c, 220, 0, .22, "sawtooth", .08); tone(c, 175, .16, .3, "sawtooth", .08); }
+    else if (kind === "tap") { tone(c, 520, 0, .08, "sine", .12); }
+    else if (kind === "bonk") { tone(c, 180, 0, .12, "square", .12); tone(c, 90, .02, .15, "sine", .25); }
+    else if (kind === "coin") { tone(c, 988, 0, .1, "square", .07); tone(c, 1319, .08, .28, "square", .07); }
+  }
+  function cheerSound() {
+    if (!sfxOn) return;
+    const c = ctx(); if (!c) return;
+    // 寶箱打開的叮叮聲 + 號角小樂句
+    [1568, 1976, 2349, 3136].forEach((f, i) => tone(c, f, .1 + i * .07, .4, "sine", .08));
+    [523, 659, 784, 1047].forEach((f, i) => tone(c, f, .35 + i * .09, i === 3 ? .5 : .14, "triangle", .22));
+    // 人群歡呼：濾波雜訊，快速升起再慢慢淡出
+    const len = Math.floor(c.sampleRate * 1.8), buf = c.createBuffer(1, len, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * (1 + 0.5 * Math.sin(i / c.sampleRate * 2 * Math.PI * (7 + Math.random())));
+    const src = c.createBufferSource(); src.buffer = buf;
+    const bp = c.createBiquadFilter(); bp.type = "bandpass"; bp.frequency.value = 1100; bp.Q.value = .7;
+    const g = c.createGain(), t = c.currentTime + .35;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.28, t + 0.25); g.gain.exponentialRampToValueAtTime(0.0001, t + 1.7);
+    src.connect(bp).connect(g).connect(c.destination); src.start(t); src.stop(t + 1.8);
+    for (let k = 0; k < 4; k++) {
+      const o = c.createOscillator(), og = c.createGain(), t0 = t + 0.15 + Math.random() * .4, f0 = 380 + Math.random() * 260;
+      o.type = "sawtooth"; o.frequency.setValueAtTime(f0, t0); o.frequency.exponentialRampToValueAtTime(f0 * 1.5, t0 + .35);
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 1800;
+      og.gain.setValueAtTime(0.0001, t0); og.gain.exponentialRampToValueAtTime(0.035, t0 + .05); og.gain.exponentialRampToValueAtTime(0.0001, t0 + .5);
+      o.connect(lp).connect(og).connect(c.destination); o.start(t0); o.stop(t0 + .55);
+    }
+  }
+  let confettiRun = 0;
+  function confetti() {
+    if (window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const cv = $("#confetti"), g = cv.getContext("2d"), dpr = window.devicePixelRatio || 1;
+    const W = innerWidth, H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; g.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cols = ["#E8673C", "#FFE04F", "#141B7A", "#2E8A3A", "#F3835E", "#7A86C9"];
+    const ps = Array.from({ length: 110 }, (_, i) => {
+      const fromLeft = i % 2 === 0;
+      return { x: fromLeft ? -10 : W + 10, y: H * (.55 + Math.random() * .3), vx: (fromLeft ? 1 : -1) * (4 + Math.random() * 7), vy: -(9 + Math.random() * 9), r: 5 + Math.random() * 6, a: Math.random() * 6, va: (Math.random() - .5) * .3, c: cols[i % cols.length], star: i % 5 === 0 };
+    });
+    const id = ++confettiRun, start = performance.now();
+    (function frame(now) {
+      if (id !== confettiRun) return;
+      const el = now - start;
+      g.clearRect(0, 0, W, H);
+      if (el > 3000) return;
+      g.globalAlpha = el > 2300 ? Math.max(0, (3000 - el) / 700) : 1;
+      for (const p of ps) {
+        p.vy += .32; p.vx *= .99; p.x += p.vx; p.y += p.vy; p.a += p.va;
+        g.save(); g.translate(p.x, p.y); g.rotate(p.a); g.fillStyle = p.c;
+        if (p.star) { g.beginPath(); for (let k = 0; k < 10; k++) { const rr = k % 2 ? p.r * .45 : p.r * 1.3, an = k * Math.PI / 5 - Math.PI / 2; g.lineTo(Math.cos(an) * rr, Math.sin(an) * rr); } g.closePath(); g.fill(); }
+        else g.fillRect(-p.r / 2, -p.r / 4, p.r, p.r / 2);
+        g.restore();
+      }
+      requestAnimationFrame(frame);
+    })(start);
+  }
+
+  /* ---------- 報讀 ---------- */
+  const synth = window.speechSynthesis;
+  let speakingBtn = null, zhVoice = null;
+  function pickVoice() {
+    if (!synth) return;
+    const vs = synth.getVoices();
+    zhVoice = vs.find(v => /zh[-_]TW/i.test(v.lang)) || vs.find(v => /zh[-_](HK|Hant)/i.test(v.lang)) || vs.find(v => /^(zh|cmn)/i.test(v.lang)) || null;
+  }
+  if (synth) { pickVoice(); synth.onvoiceschanged = pickVoice; }
+  // LINE 內建瀏覽器不能報讀：自動改用手機的預設瀏覽器開啟
+  try {
+    if (window.top === window && /\bLine\//i.test(navigator.userAgent) && /^https?:/.test(location.protocol) && !/openExternalBrowser=1/.test(location.search)) {
+      const u = new URL(location.href); u.searchParams.set("openExternalBrowser", "1"); location.replace(u.href);
+    }
+  } catch (e) {}
+  function stopSpeak() { if (synth) synth.cancel(); if (speakingBtn) speakingBtn.classList.remove("on"); speakingBtn = null; }
+  function notice(msg) {
+    let n = document.getElementById("speak-notice");
+    if (!n) {
+      n = document.createElement("div"); n.id = "speak-notice"; n.setAttribute("role", "alert");
+      n.style.cssText = "position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:70;max-width:min(92vw,560px);background:#141B7A;color:#fff;padding:14px 20px;border-radius:18px;font-size:1.1rem;line-height:1.6;box-shadow:0 6px 24px rgba(0,0,0,.25)";
+      document.body.appendChild(n);
+    }
+    n.textContent = msg; n.hidden = false;
+    let top = false; try { top = window.top === window; } catch (e) {}
+    if (top && /^https?:/.test(location.protocol) && /Android/i.test(navigator.userAgent)) {
+      const a = document.createElement("a");
+      a.href = `intent://${location.host}${location.pathname}${location.search}#Intent;scheme=${location.protocol.slice(0, -1)};package=com.android.chrome;end`;
+      a.textContent = "用 Chrome 開啟"; a.style.cssText = "display:inline-block;margin-top:8px;background:#FFE04F;color:#141B7A;font-weight:700;padding:4px 14px;border-radius:999px;text-decoration:none";
+      n.appendChild(document.createElement("br")); n.appendChild(a);
+    }
+    clearTimeout(n._t); n._t = setTimeout(() => { n.hidden = true; }, 6000);
+  }
+  // 手機會把太長的一段話念到一半就停，所以切成短句排隊念
+  function chunks(t) {
+    const out = []; let cur = "";
+    t.split(/(?<=[。！？；!?;])/).forEach(p => {
+      if (cur && (cur + p).length > 110) { out.push(cur); cur = p; } else cur += p;
+    });
+    if (cur.trim()) out.push(cur);
+    return out;
+  }
+  // 破音字：只改「念出來的音」，畫面上的字不變
+  const PRON = [
+    [/(溫|平|柔|緩|謙)和/g, "$1荷"], [/和(平|諧|藹|善)/g, "荷$1"], [/和/g, "漢"],
+    [/(適|不)當/g, "$1蕩"],               // 不當、適當：ㄉㄤˋ
+    [/(^|[^首京成])都(?!市)/g, "$1兜"],
+    [/重複/g, "蟲複"], [/協調/g, "協條"], [/刺刺/g, "次次"], [/地鼠/g, "地暑"],
+  ];
+  function pron(t) { PRON.forEach(([a, b]) => { t = t.replace(a, b); }); return t; }
+  let speakId = 0;
+  function speak(text, btn) {
+    if (!synth || !window.SpeechSynthesisUtterance) {
+      notice("這個瀏覽器不支援朗讀。請按右上角「⋯」選「用瀏覽器開啟」，改用 Chrome 或 Safari 開這個網頁。");
+      return;
+    }
+    if (speakingBtn === btn) { stopSpeak(); return; }
+    if (synth.speaking || synth.pending) synth.cancel();
+    if (speakingBtn) speakingBtn.classList.remove("on");
+    speakingBtn = null;
+    if (!zhVoice) pickVoice();
+    const id = ++speakId;
+    const parts = chunks(pron(text.replace(/✓|✕|🎉|🎬/g, "").replace(/\s+/g, " ")));
+    let started = false;
+    parts.forEach((p, k) => {
+      const u = new SpeechSynthesisUtterance(p);
+      u.lang = "zh-TW"; if (zhVoice) u.voice = zhVoice; u.rate = 0.95; u.volume = 1;
+      u.onstart = () => { started = true; };
+      if (k === parts.length - 1) u.onend = () => { if (id === speakId && speakingBtn === btn) stopSpeak(); };
+      u.onerror = e => { if (id === speakId && speakingBtn === btn && e.error !== "interrupted" && e.error !== "canceled") stopSpeak(); };
+      synth.speak(u);
+    });
+    speakingBtn = btn; if (btn) btn.classList.add("on");
+    if (synth.paused) synth.resume();
+    setTimeout(() => {
+      if (id === speakId && !started && !synth.speaking) {
+        stopSpeak();
+        notice("沒有聽到聲音嗎？請確認：手機不是靜音模式、媒體音量有開大；Android 請到「設定 → 文字轉語音」確認已安裝中文語音。");
+      }
+    }, 3000);
+  }
+  document.addEventListener("click", e => {
+    const b = e.target.closest("[data-read]");
+    if (!b) return;
+    const text = Array.from(document.querySelectorAll(b.dataset.read)).map(el => el.innerText.replace(/\n/g, "")).join("。");
+    speak(text, b);
+  });
+
+  score();
+})();
+</script>
+</body>
+</html>
