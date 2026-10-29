@@ -1,0 +1,607 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>13類身障搶答王</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Huninn&family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/peerjs/1.5.4/peerjs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* ====== 題目在下方 <script> 的 QUESTIONS 裡，可直接改文字 ====== */
+:root{
+  --bg1:#2B1665; --bg2:#4A1C8C; --ink:#fff; --muted:#D9CCFF;
+  --red:#E21B3C; --blue:#1368CE; --yellow:#C98A00; --green:#26890C;
+  --ok:#2FBF4A; --bad:#E5323E; --gold:#FFC83D;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:"Huninn","Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;color:var(--ink);
+  background:radial-gradient(ellipse at 50% 0%,var(--bg2),var(--bg1) 70%);background-color:var(--bg1);overflow:hidden;user-select:none}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.55;
+  background-image:radial-gradient(2px 2px at 10% 20%,#fff,transparent),radial-gradient(2px 2px at 80% 15%,#fff,transparent),
+  radial-gradient(1.5px 1.5px at 30% 70%,#fff,transparent),radial-gradient(2px 2px at 65% 55%,#fff,transparent),
+  radial-gradient(1.5px 1.5px at 90% 80%,#fff,transparent),radial-gradient(1.5px 1.5px at 45% 35%,#fff,transparent)}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;padding:2vh 3vw;text-align:center}
+.scr.on{display:flex}
+button{font-family:inherit;border:0;cursor:pointer;color:#fff}
+.big-btn{background:var(--gold);color:#2B1665;font-weight:900;font-size:clamp(22px,3.2vw,44px);padding:.45em 1.4em;border-radius:999px;
+  box-shadow:0 .18em 0 #B8860B;transition:transform .1s}
+.big-btn:active{transform:translateY(.12em);box-shadow:0 .06em 0 #B8860B}
+.big-btn:disabled{opacity:.4}
+h1.title{font-size:clamp(40px,7vw,110px);font-weight:900;letter-spacing:.05em;text-shadow:0 .08em 0 rgba(0,0,0,.35)}
+.title .hl{color:var(--gold)}
+.sub{font-size:clamp(18px,2.4vw,34px);color:var(--muted);margin:.6em 0 1.2em}
+.pill{display:inline-block;background:rgba(255,255,255,.14);border-radius:999px;padding:.25em .9em;font-size:clamp(16px,1.8vw,26px)}
+.row{display:flex;gap:1em;align-items:center;justify-content:center;flex-wrap:wrap}
+.seg button{background:rgba(255,255,255,.15);font-size:clamp(16px,1.8vw,26px);padding:.3em .9em;border-radius:999px;margin:0 .15em}
+.seg button.sel{background:#fff;color:var(--bg1);font-weight:900}
+
+/* lobby */
+#lobby{justify-content:flex-start;padding-top:3vh}
+.lob-top{display:flex;gap:4vw;align-items:center;justify-content:center;width:100%}
+#qr{background:#fff;padding:14px;border-radius:18px;width:min(32vh,30vw);height:min(32vh,30vw)}
+#qr img,#qr canvas{width:100%!important;height:100%!important;display:block}
+.join-info{text-align:left}
+.join-info .lbl{font-size:clamp(18px,2.2vw,32px);color:var(--muted)}
+.join-info .code{font-size:clamp(56px,9vw,140px);font-weight:900;letter-spacing:.12em;line-height:1.05;color:var(--gold)}
+.join-info .url{font-size:clamp(13px,1.3vw,18px);color:var(--muted);word-break:break-all;max-width:44vw;margin-top:.4em}
+.lob-mid{display:flex;align-items:center;justify-content:space-between;width:100%;margin:2.5vh 0 1.5vh}
+.count{font-size:clamp(22px,2.8vw,40px);font-weight:900}
+.count b{font-size:1.5em;color:var(--gold)}
+#names{display:flex;flex-wrap:wrap;gap:.5em;justify-content:center;align-content:flex-start;width:100%;flex:1;overflow:auto}
+.nm{background:#fff;color:#2B1665;font-weight:900;font-size:clamp(18px,2.2vw,32px);padding:.2em .7em;border-radius:12px;animation:pop .35s cubic-bezier(.3,1.6,.6,1)}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.warn{background:#FFE08A;color:#4A2A00;border-radius:12px;padding:.5em 1em;font-size:clamp(14px,1.5vw,20px);margin-top:1vh;max-width:90vw}
+
+/* host question */
+#hq{justify-content:flex-start;padding-top:2vh}
+.qbar{display:flex;justify-content:space-between;align-items:center;width:100%}
+.qtext{background:#fff;color:#1d1240;font-weight:900;font-size:clamp(28px,4.4vw,68px);line-height:1.3;border-radius:16px;padding:.35em .8em;margin:1.5vh 0;width:100%;
+  box-shadow:0 .12em 0 rgba(0,0,0,.25)}
+.qmid{display:flex;align-items:center;justify-content:space-between;width:100%;flex:1;min-height:0}
+.timer{width:clamp(90px,12vw,180px);height:clamp(90px,12vw,180px);border-radius:50%;background:var(--bg2);border:6px solid #fff;
+  display:flex;align-items:center;justify-content:center;font-size:clamp(40px,6vw,90px);font-weight:900}
+.timer.hurry{background:var(--bad);animation:beat .5s infinite}
+@keyframes beat{50%{transform:scale(1.08)}}
+.anscount{font-size:clamp(20px,2.4vw,36px);font-weight:900}
+.anscount b{display:block;font-size:2em;color:var(--gold)}
+.qpic{font-size:clamp(60px,min(13vw,24vh),200px);line-height:1}
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:1.2vh 1vw;width:100%;margin-top:1.5vh}
+.opt{display:flex;align-items:center;gap:.5em;border-radius:12px;padding:.45em .6em;font-size:clamp(22px,3.2vw,50px);font-weight:900;text-align:left;
+  min-height:clamp(64px,13vh,140px);box-shadow:0 .1em 0 rgba(0,0,0,.3);transition:opacity .3s,transform .3s}
+.opt .sh{flex:none;width:1.3em;height:1.3em}
+.o0{background:var(--red)}.o1{background:var(--blue)}.o2{background:var(--yellow)}.o3{background:var(--green)}
+.opt.dim{opacity:.25}
+.opt.win{transform:scale(1.02);outline:6px solid #fff}
+.opt .ck{margin-left:auto;font-size:1.1em}
+.opt .cnt{margin-left:auto;background:rgba(0,0,0,.25);border-radius:999px;padding:0 .5em;font-size:.8em}
+.ex{font-size:clamp(18px,2.2vw,32px);background:rgba(0,0,0,.25);border-radius:12px;padding:.3em .8em;margin-top:1vh;display:none}
+
+/* board */
+#board{justify-content:flex-start;padding-top:4vh}
+#board h2{font-size:clamp(34px,5vw,76px);font-weight:900;margin-bottom:3vh}
+.rows{width:min(900px,90vw);display:flex;flex-direction:column;gap:1.4vh}
+.brow{display:flex;align-items:center;background:#fff;color:#1d1240;border-radius:12px;padding:.3em .8em;font-size:clamp(22px,3vw,46px);font-weight:900;
+  animation:slide .45s both}
+.brow .rk{width:2em;text-align:left;color:var(--bg2)}
+.brow .sc{margin-left:auto}
+@keyframes slide{from{transform:translateX(-60px);opacity:0}}
+
+/* podium */
+#final h2{font-size:clamp(40px,6vw,96px);font-weight:900;color:var(--gold);text-shadow:0 .06em 0 rgba(0,0,0,.4)}
+.podium{display:flex;align-items:flex-end;justify-content:center;gap:2vw;margin-top:3vh;height:52vh}
+.pcol{display:flex;flex-direction:column;align-items:center;width:min(24vw,280px)}
+.pcol .pn{font-size:clamp(22px,3vw,46px);font-weight:900;margin-bottom:.2em;opacity:0;transition:opacity .5s}
+.pcol .ps{font-size:clamp(16px,1.8vw,26px);color:var(--muted);margin-bottom:.4em;opacity:0;transition:opacity .5s}
+.pcol .blk{width:100%;border-radius:14px 14px 0 0;display:flex;justify-content:center;padding-top:.3em;font-size:clamp(50px,7vw,110px);font-weight:900;
+  transform-origin:bottom;transform:scaleY(0);transition:transform .8s cubic-bezier(.3,1.4,.6,1)}
+.pcol.up .pn,.pcol.up .ps{opacity:1}
+.pcol.up .blk{transform:scaleY(1)}
+.p1 .blk{height:40vh;background:linear-gradient(#FFD45E,#E6A700)}
+.p2 .blk{height:30vh;background:linear-gradient(#E9EEF5,#A9B4C6);color:#2B1665}
+.p3 .blk{height:22vh;background:linear-gradient(#F0A86B,#B8692E)}
+
+/* ===== player ===== */
+.card{background:#fff;color:#1d1240;border-radius:20px;padding:1.2em 1.4em;width:min(440px,92vw);box-shadow:0 .2em 0 rgba(0,0,0,.25)}
+.card h2{font-size:28px;font-weight:900;margin-bottom:.6em}
+.card input{width:100%;font-family:inherit;font-size:28px;font-weight:900;text-align:center;border:3px solid #CFC4EE;border-radius:12px;padding:.3em;margin-bottom:.6em;color:#1d1240}
+.card input:focus{outline:none;border-color:var(--bg2)}
+.card .big-btn{width:100%;font-size:28px}
+.msg{font-size:clamp(26px,7vw,48px);font-weight:900;line-height:1.35}
+.msg small{display:block;font-size:.55em;color:var(--muted);font-weight:700;margin-top:.4em}
+.me{position:fixed;top:10px;left:12px;right:12px;display:flex;justify-content:space-between;font-size:18px;font-weight:900;pointer-events:none}
+.me span{background:rgba(255,255,255,.15);border-radius:999px;padding:.15em .7em}
+#pq{padding:52px 10px 10px}
+#pqText{font-size:clamp(18px,4.6vw,28px);font-weight:900;margin-bottom:10px;line-height:1.3}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px;width:100%;flex:1;min-height:0}
+.pgrid.two{grid-template-columns:1fr 1fr}
+.pbtn{border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.3em;font-weight:900;
+  font-size:clamp(20px,5vw,34px);line-height:1.25;padding:.3em;box-shadow:0 6px 0 rgba(0,0,0,.3);transition:transform .08s}
+.pbtn:active{transform:translateY(4px);box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.pbtn .sh{width:1.6em;height:1.6em}
+@media (orientation:landscape) and (max-height:500px){
+  .pgrid{grid-template-columns:repeat(4,1fr)} .pgrid.two{grid-template-columns:1fr 1fr}
+  #pq{padding-top:44px} .me{top:6px}
+}
+.res{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:20px}
+.res.on{display:flex}
+.res.good{background:var(--ok)} .res.badr{background:var(--bad)} .res.wait{background:var(--bg1)}
+.res .r1{font-size:clamp(44px,13vw,90px);font-weight:900;text-shadow:0 .06em 0 rgba(0,0,0,.25)}
+.res .r2{font-size:clamp(30px,9vw,60px);font-weight:900;background:rgba(0,0,0,.2);border-radius:999px;padding:.05em .7em;margin:.3em 0}
+.res .r3{font-size:clamp(20px,5.5vw,32px);font-weight:900;margin-top:.4em}
+.spin{width:64px;height:64px;border:8px solid rgba(255,255,255,.25);border-top-color:#fff;border-radius:50%;animation:sp 1s linear infinite;margin:20px auto}
+@keyframes sp{to{transform:rotate(360deg)}}
+#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+.sndbtn{position:fixed;right:12px;bottom:12px;background:rgba(255,255,255,.15);border-radius:999px;font-size:22px;width:48px;height:48px;z-index:40}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<!-- ======== 主持人（大螢幕） ======== -->
+<section class="scr" id="setup">
+  <h1 class="title">13類身障<span class="hl">搶答王</span></h1>
+  <p class="sub">大家拿出手機，一起比快比準！</p>
+  <div class="row" style="margin-bottom:1.4em">
+    <span class="pill">每題秒數</span>
+    <span class="seg" id="segT"><button data-v="10">10</button><button data-v="20" class="sel">20</button><button data-v="30">30</button></span>
+  </div>
+  <button class="big-btn" id="btnOpen">開始</button>
+  <p class="warn" id="fileWarn" style="display:none">⚠ 請把這個檔案放上網站（GitHub Pages）再開啟，學生掃 QR code 才連得到。</p>
+</section>
+
+<section class="scr" id="lobby">
+  <div class="lob-top">
+    <div id="qr"></div>
+    <div class="join-info">
+      <div class="lbl">手機掃 QR code 加入</div>
+      <div class="lbl" style="margin-top:.6em">房間號碼</div>
+      <div class="code" id="roomCode">-----</div>
+      <div class="url" id="joinUrl"></div>
+    </div>
+  </div>
+  <div class="lob-mid">
+    <div class="count">已加入 <b id="pCount">0</b> 人</div>
+    <button class="big-btn" id="btnStart" disabled>開始比賽！</button>
+  </div>
+  <div id="names"></div>
+  <div class="warn" id="netWarn" style="display:none"></div>
+</section>
+
+<section class="scr" id="hq">
+  <div class="qbar"><span class="pill" id="qNum">第 1 / 14 題</span><span class="pill">房間 <b id="roomCode2"></b></span></div>
+  <div class="qtext" id="qText"></div>
+  <div class="qmid">
+    <div class="timer" id="timer">20</div>
+    <div class="qpic" id="qPic">🧠</div>
+    <div class="anscount"><b id="aCount">0</b>人已作答</div>
+  </div>
+  <div class="ex" id="qEx"></div>
+  <div class="opts" id="hOpts"></div>
+  <div style="margin-top:1.4vh"><button class="big-btn" id="btnNext" style="display:none">下一步 ▶</button></div>
+</section>
+
+<section class="scr" id="board">
+  <h2>🏆 排行榜</h2>
+  <div class="rows" id="rows"></div>
+  <div style="margin-top:3vh"><button class="big-btn" id="btnNext2">下一題 ▶</button></div>
+</section>
+
+<section class="scr" id="final">
+  <h2>🎉 恭喜！</h2>
+  <div class="podium">
+    <div class="pcol p2"><div class="pn"></div><div class="ps"></div><div class="blk">2</div></div>
+    <div class="pcol p1"><div class="pn"></div><div class="ps"></div><div class="blk">1</div></div>
+    <div class="pcol p3"><div class="pn"></div><div class="ps"></div><div class="blk">3</div></div>
+  </div>
+  <div style="margin-top:2vh" class="row"><button class="big-btn" id="btnAgain">再玩一次</button></div>
+</section>
+
+<!-- ======== 學生（手機） ======== -->
+<section class="scr" id="pjoin">
+  <h1 class="title" style="font-size:clamp(34px,10vw,60px);margin-bottom:.5em">13類身障<span class="hl">搶答王</span></h1>
+  <div class="card">
+    <input id="inCode" inputmode="numeric" maxlength="5" placeholder="房間號碼">
+    <input id="inName" maxlength="8" placeholder="你的暱稱">
+    <button class="big-btn" id="btnJoin">加入！</button>
+    <p id="joinErr" style="color:var(--bad);font-weight:900;margin-top:.6em;min-height:1.2em"></p>
+  </div>
+</section>
+
+<section class="scr" id="pwait">
+  <div class="msg" id="pwaitMsg">你加入了！<small>看大螢幕，等老師開始</small></div>
+  <div class="spin"></div>
+</section>
+
+<section class="scr" id="pq">
+  <div id="pqText"></div>
+  <div class="pgrid" id="pOpts"></div>
+</section>
+
+<section class="scr" id="pfinal">
+  <div class="msg" id="pfinalMsg"></div>
+</section>
+
+<div class="me" id="meBar" style="display:none"><span id="meName"></span><span id="meScore">0 分</span></div>
+<div class="res" id="pres"><div class="r1" id="r1"></div><div class="r2" id="r2"></div><div class="r3" id="r3"></div></div>
+<button class="sndbtn" id="sndBtn" title="音效">🔊</button>
+
+<script>
+/* =========================================================
+   題目：a = 正確答案的位置（從 0 開始數），ex = 公布答案時的一句話
+   ========================================================= */
+const QUESTIONS = [
+  { q:"特教法裡，身心障礙一共分成幾類？", pic:"🔢",
+    opts:["5 類","10 類","13 類","20 類"], a:2,
+    ex:"一共 13 類！" },
+  { q:"智力低下、適應也困難，是哪一類？", pic:"📚",
+    opts:["學習障礙","智能障礙","自閉症","語言障礙"], a:1,
+    ex:"智能障礙：智力＋適應都有困難" },
+  { q:"視覺障礙的人，都是完全看不見。", pic:"👓",
+    opts:["⭕ 對","❌ 錯"], a:1,
+    ex:"很多是弱視，還看得到一部分" },
+  { q:"跟聽障同學說話，怎麼做最好？", pic:"👂",
+    opts:["從背後叫他","大聲吼","面對他、慢慢說清楚","說快一點"], a:2,
+    ex:"面對面，讓他看得到你的嘴型" },
+  { q:"說話常常結巴、口吃，是哪一類？", pic:"🗣️",
+    opts:["語言障礙","聽覺障礙","情緒行為障礙","智能障礙"], a:0,
+    ex:"語言障礙：構音、聲音、語暢、語言發展" },
+  { q:"肢體障礙的人，一定要坐輪椅。", pic:"♿",
+    opts:["⭕ 對","❌ 錯"], a:1,
+    ex:"有人用拐杖、義肢，也有人不用輔具" },
+  { q:"腦性麻痺是怎麼造成的？", pic:"🧠",
+    opts:["被別人傳染","運動太少","大腦在發育時受損","吃太多甜食"], a:2,
+    ex:"腦部早期受損，影響動作和姿勢" },
+  { q:"長期生病要治療，影響上學，是哪一類？", pic:"🏥",
+    opts:["肢體障礙","身體病弱","學習障礙","多重障礙"], a:1,
+    ex:"身體病弱：需要長期醫療照顧" },
+  { q:"情緒行為障礙，就是個性不好。", pic:"🌋",
+    opts:["⭕ 對","❌ 錯"], a:1,
+    ex:"不是個性問題，是需要協助的障礙" },
+  { q:"學習障礙的人，智力通常是？", pic:"✏️",
+    opts:["一定很低","正常或以上","沒辦法測","一定是天才"], a:1,
+    ex:"智力正常，但讀、寫、算特別困難" },
+  { q:"同時有兩種以上的障礙，是哪一類？", pic:"➕",
+    opts:["其他障礙","發展遲緩","多重障礙","身體病弱"], a:2,
+    ex:"多重障礙：兩種以上障礙同時存在" },
+  { q:"社交溝通困難、興趣固定，是哪一類？", pic:"🌟",
+    opts:["自閉症","語言障礙","智能障礙","聽覺障礙"], a:0,
+    ex:"自閉症：社交溝通＋固定的興趣行為" },
+  { q:"發展遲緩是用在未滿 6 歲的幼兒。", pic:"👶",
+    opts:["⭕ 對","❌ 錯"], a:0,
+    ex:"發展遲緩：未滿 6 歲的孩子" },
+  { q:"前 12 類都不是，是哪一類？", pic:"❓",
+    opts:["多重障礙","身體病弱","情緒行為障礙","其他障礙"], a:3,
+    ex:"其他障礙：前 12 類都放不進去的" },
+];
+const ROOM_PREFIX = "nknu-sped13-quiz-";
+
+/* ---------------- 共用：形狀、音效、彩帶 ---------------- */
+const SHAPES = [
+  '<svg class="sh" viewBox="0 0 40 40"><path d="M20 4 37 35H3z" fill="#fff"/></svg>',
+  '<svg class="sh" viewBox="0 0 40 40"><path d="M20 2 38 20 20 38 2 20z" fill="#fff"/></svg>',
+  '<svg class="sh" viewBox="0 0 40 40"><circle cx="20" cy="20" r="17" fill="#fff"/></svg>',
+  '<svg class="sh" viewBox="0 0 40 40"><rect x="4" y="4" width="32" height="32" rx="3" fill="#fff"/></svg>'
+];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function show(id){ document.querySelectorAll('.scr').forEach(s => s.classList.toggle('on', s.id === id)); }
+
+let AC = null, MUTE = false, master = null;
+function audio(){
+  if (!AC) { try { AC = new (window.AudioContext||window.webkitAudioContext)(); master = AC.createGain(); master.gain.value = 0.9; master.connect(AC.destination); } catch(e){} }
+  if (AC && AC.state === 'suspended') AC.resume();
+  return AC;
+}
+function tone(f, t0, dur, type='square', vol=.18){
+  if (!AC || MUTE) return;
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(vol, t0+.01); g.gain.exponentialRampToValueAtTime(.001, t0+dur);
+  o.connect(g); g.connect(master); o.start(t0); o.stop(t0+dur+.02);
+}
+function noise(t0, dur, vol=.3, fq=1200){
+  if (!AC || MUTE) return;
+  const n = AC.createBuffer(1, AC.sampleRate*dur, AC.sampleRate), d = n.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * (0.6+0.4*Math.sin(i/AC.sampleRate*40*Math.PI)) ;
+  const s = AC.createBufferSource(); s.buffer = n;
+  const f = AC.createBiquadFilter(); f.type='bandpass'; f.frequency.value=fq; f.Q.value=.6;
+  const g = AC.createGain(); g.gain.setValueAtTime(0,t0); g.gain.linearRampToValueAtTime(vol,t0+.15); g.gain.setValueAtTime(vol,t0+dur*.6); g.gain.linearRampToValueAtTime(0,t0+dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t0);
+}
+const SFX = {
+  tick(hi){ if(!AC) return; tone(hi?1320:880, AC.currentTime, .08, 'square', .15); },
+  join(){ if(!AC) return; const t=AC.currentTime; tone(660,t,.1,'triangle',.25); tone(990,t+.08,.15,'triangle',.25); },
+  gong(){ if(!AC) return; const t=AC.currentTime; [196,247,294].forEach(f=>tone(f,t,1.2,'sawtooth',.12)); noise(t,.4,.15,400); },
+  ding(){ if(!AC) return; const t=AC.currentTime; [784,988,1319].forEach((f,i)=>tone(f,t+i*.09,.35,'triangle',.3)); },
+  buzz(){ if(!AC) return; const t=AC.currentTime; tone(150,t,.45,'sawtooth',.25); tone(110,t+.2,.45,'sawtooth',.25); },
+  cheer(d=2.6){ if(!AC) return; const t=AC.currentTime; noise(t,d,.45,1500); noise(t+.1,d,.3,2600); noise(t,d*.8,.2,700); },
+  fanfare(){ if(!AC) return; const t=AC.currentTime;
+    [[523,0,.15],[523,.15,.15],[523,.3,.15],[659,.45,.45],[587,.9,.15],[659,1.05,.15],[784,1.2,.9]].forEach(([f,s,d])=>{tone(f,t+s,d,'sawtooth',.16);tone(f/2,t+s,d,'square',.08)}); },
+  drum(){ if(!AC) return; const t=AC.currentTime; for(let i=0;i<14;i++) noise(t+i*.08,.07,.25,300); }
+};
+/* 背景音樂（大螢幕用） */
+let musicTimer = null;
+function music(kind){
+  clearInterval(musicTimer); musicTimer = null;
+  if (!kind || !AC) return;
+  const lobby = [262,330,392,523,392,330, 294,349,440,587,440,349];
+  const play  = [220,0,330,0,220,0,392,0, 247,0,370,0,247,0,415,0];
+  const seq = kind==='lobby' ? lobby : play, step = kind==='lobby' ? .22 : .15; let i = 0;
+  musicTimer = setInterval(()=>{ if(MUTE||!AC) return; const f=seq[i++%seq.length]; if(f) tone(f,AC.currentTime,step*.9,kind==='lobby'?'triangle':'square',kind==='lobby'?.09:.06); if(kind==='play'&&i%2) tone(55,AC.currentTime,.1,'sine',.25); }, step*1000);
+}
+$('sndBtn').onclick = () => { MUTE = !MUTE; $('sndBtn').textContent = MUTE ? '🔇' : '🔊'; audio(); };
+
+/* 彩帶 */
+const fx = $('fx'), fctx = fx.getContext('2d'); let parts = [], fxOn = false;
+function fit(){ fx.width = innerWidth*devicePixelRatio; fx.height = innerHeight*devicePixelRatio; } fit(); addEventListener('resize', fit);
+function confetti(n=160){
+  const C = ['#FFC83D','#E21B3C','#1368CE','#26890C','#fff','#FF7AD9'];
+  for (let i=0;i<n;i++) parts.push({x:Math.random()*fx.width, y:-20-Math.random()*fx.height*.5, vx:(Math.random()-.5)*4, vy:2+Math.random()*4,
+    r:Math.random()*6, s:(6+Math.random()*8)*devicePixelRatio, c:C[i%C.length], w:Math.random()*.3});
+  if (!fxOn) { fxOn = true; requestAnimationFrame(loopFx); }
+}
+function loopFx(){
+  fctx.clearRect(0,0,fx.width,fx.height);
+  parts.forEach(p=>{ p.x+=p.vx; p.y+=p.vy*devicePixelRatio; p.r+=p.w; fctx.save(); fctx.translate(p.x,p.y); fctx.rotate(p.r); fctx.fillStyle=p.c; fctx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2); fctx.restore(); });
+  parts = parts.filter(p=>p.y<fx.height+30);
+  if (parts.length) requestAnimationFrame(loopFx); else { fxOn=false; fctx.clearRect(0,0,fx.width,fx.height); }
+}
+
+/* ---------------- 連線（PeerJS；?bc=1 為同一台電腦測試模式） ---------------- */
+const params = new URLSearchParams(location.search);
+const USE_BC = params.has('bc') || typeof Peer === 'undefined';
+const Net = {
+  host(code, cb){
+    if (USE_BC) {
+      const bc = new BroadcastChannel('kq'+code), conns = {};
+      bc.onmessage = e => { const m = e.data; if (m.to !== 'H') return;
+        if (m.k==='hello') { let c = conns[m.from]; if (!c) { c = conns[m.from] = {id:m.from, open:true, send:d=>bc.postMessage({k:'d',to:m.from,d}), ondata:null, onclose:null}; }
+          bc.postMessage({k:'ok',to:m.from}); cb.conn(c); }
+        else if (m.k==='d' && conns[m.from] && conns[m.from].ondata) conns[m.from].ondata(m.d); };
+      setTimeout(()=>cb.open(), 50); return;
+    }
+    const peer = new Peer(ROOM_PREFIX+code, {debug:0});
+    peer.on('open', ()=>cb.open());
+    peer.on('error', err => cb.error(err));
+    peer.on('disconnected', ()=>{ try{ peer.reconnect(); }catch(e){} });
+    peer.on('connection', pc => {
+      const c = {id:pc.peer, open:false, send:d=>{ try{ if(pc.open) pc.send(d); }catch(e){} }, ondata:null, onclose:null};
+      pc.on('open', ()=>{ c.open = true; cb.conn(c); });
+      pc.on('data', d=>c.ondata && c.ondata(d));
+      pc.on('close', ()=>{ c.open=false; c.onclose && c.onclose(); });
+      pc.on('error', ()=>{});
+    });
+  },
+  join(code, cb){
+    if (USE_BC) {
+      const me = 'p'+Math.random().toString(36).slice(2), bc = new BroadcastChannel('kq'+code);
+      const c = {open:false, send:d=>bc.postMessage({k:'d',to:'H',from:me,d}), ondata:null, onclose:null};
+      bc.onmessage = e => { const m = e.data; if (m.to!==me) return;
+        if (m.k==='ok' && !c.open) { c.open = true; cb.open(c); } else if (m.k==='d' && c.ondata) c.ondata(m.d); };
+      bc.postMessage({k:'hello',to:'H',from:me});
+      setTimeout(()=>{ if(!c.open) cb.fail(); }, 4000); return;
+    }
+    const peer = new Peer({debug:0}); let done = false;
+    const fail = () => { if (!done) { done = true; try{peer.destroy()}catch(e){}; cb.fail(); } };
+    peer.on('open', ()=>{
+      const pc = peer.connect(ROOM_PREFIX+code, {reliable:true});
+      const c = {get open(){return pc.open}, send:d=>{ try{ pc.send(d); }catch(e){} }, ondata:null, onclose:null};
+      pc.on('open', ()=>{ done = true; cb.open(c); });
+      pc.on('data', d=>c.ondata && c.ondata(d));
+      pc.on('close', ()=>{ c.onclose && c.onclose(); try{peer.destroy()}catch(e){} });
+      pc.on('error', fail);
+    });
+    peer.on('error', fail);
+    setTimeout(()=>{ if(!done) fail(); }, 12000);
+  }
+};
+
+/* =================== 主持人 =================== */
+function hostMain(){
+  let DUR = 20, code = '', players = {}, qi = -1, qStart = 0, tLeft = 0, timerId = null, phase = 'lobby', answers = {};
+  if (location.protocol === 'file:' && !USE_BC) $('fileWarn').style.display = 'block';
+  $('segT').onclick = e => { const b = e.target.closest('button'); if(!b) return; DUR = +b.dataset.v; [...$('segT').children].forEach(x=>x.classList.toggle('sel', x===b)); };
+  show('setup');
+
+  $('btnOpen').onclick = () => { audio(); SFX.join(); openRoom(); };
+  function openRoom(){
+    code = String(10000 + Math.floor(Math.random()*90000));
+    $('btnOpen').disabled = true; $('btnOpen').textContent = '連線中…';
+    Net.host(code, {
+      open(){ show('lobby'); music('lobby'); drawJoin(); },
+      error(err){
+        if (err && err.type === 'unavailable-id') return openRoom();
+        $('btnOpen').disabled = false; $('btnOpen').textContent = '再試一次';
+        if (phase==='lobby') { $('fileWarn').style.display='block'; $('fileWarn').textContent = '⚠ 連線伺服器失敗，請確認網路後再試一次。（' + (err && err.type || '') + '）'; }
+      },
+      conn(c){
+        c.ondata = d => onData(c, d);
+        c.onclose = () => { const p = Object.values(players).find(p=>p.conn===c); if (p) p.conn = null; };
+      }
+    });
+  }
+  function drawJoin(){
+    const base = location.href.split('?')[0].split('#')[0];
+    const url = base + '?r=' + code + (USE_BC ? '&bc=1' : '');
+    $('roomCode').textContent = code; $('roomCode2').textContent = code; $('joinUrl').textContent = url;
+    $('qr').innerHTML = '';
+    if (window.QRCode) new QRCode($('qr'), {text:url, width:512, height:512, correctLevel:QRCode.CorrectLevel.M});
+    else $('qr').innerHTML = '<img alt="QR" src="https://api.qrserver.com/v1/create-qr-code/?size=512x512&data='+encodeURIComponent(url)+'">';
+  }
+  function onData(c, d){
+    if (!d || typeof d !== 'object') return;
+    if (d.t === 'join') {
+      let p = players[d.pid];
+      if (!p) {
+        if (phase === 'final') return c.send({t:'full'});
+        let name = String(d.name||'').trim().slice(0,8) || '玩家';
+        const used = new Set(Object.values(players).map(p=>p.name)); let n = name, k = 2; while (used.has(n)) n = name + k++;
+        p = players[d.pid] = {pid:d.pid, name:n, score:0, conn:c, last:null};
+        const el = document.createElement('div'); el.className='nm'; el.textContent = n; $('names').appendChild(el); p.el = el;
+        $('pCount').textContent = Object.keys(players).length; $('btnStart').disabled = false; SFX.join();
+      } else p.conn = c;
+      c.send({t:'hi', name:p.name, score:p.score});
+      // 中途重連：補送目前狀態
+      if (phase === 'q' && !(p.pid in answers)) c.send(qMsg());
+      else if (phase === 'q') c.send({t:'sent'});
+      else if (phase === 'final') c.send(finalMsg(p));
+      else if (p.last) c.send(p.last);
+    }
+    if (d.t === 'ans' && phase === 'q' && d.i === qi) {
+      const p = players[d.pid]; if (!p || (d.pid in answers)) return;
+      const k = +d.k, el = (performance.now() - qStart)/1000, Q = QUESTIONS[qi];
+      if (!(k>=0 && k<Q.opts.length)) return;
+      answers[d.pid] = {k, pts: k===Q.a ? Math.round(1000*(1 - Math.min(el,DUR)/DUR/2)) : 0};
+      c.send({t:'sent'});
+      $('aCount').textContent = Object.keys(answers).length; SFX.tick(true);
+      if (Object.keys(answers).length >= Object.keys(players).length) setTimeout(reveal, 400);
+    }
+  }
+  function send(p, m){ if (p.conn) p.conn.send(m); }
+  function qMsg(){ const Q = QUESTIONS[qi]; return {t:'q', i:qi, n:QUESTIONS.length, q:Q.q, opts:Q.opts, left:Math.max(1,tLeft)}; }
+  const ranked = () => Object.values(players).sort((a,b)=>b.score-a.score);
+
+  $('btnStart').onclick = () => { audio(); qi = -1; nextQ(); };
+  function nextQ(){
+    qi++;
+    if (qi >= QUESTIONS.length) return finale();
+    const Q = QUESTIONS[qi]; answers = {}; phase = 'q';
+    $('qNum').textContent = `第 ${qi+1} / ${QUESTIONS.length} 題`;
+    $('qText').textContent = Q.q; $('qPic').textContent = Q.pic || '❓';
+    $('aCount').textContent = '0'; $('qEx').style.display = 'none'; $('btnNext').style.display = 'none';
+    $('hOpts').innerHTML = Q.opts.map((o,i)=>`<div class="opt o${i}">${SHAPES[i]}<span>${esc(o)}</span></div>`).join('');
+    $('timer').style.visibility = 'visible';
+    show('hq'); SFX.gong(); music('play');
+    tLeft = DUR; qStart = performance.now(); drawT();
+    Object.values(players).forEach(p=>send(p, qMsg()));
+    clearInterval(timerId);
+    timerId = setInterval(()=>{ tLeft = Math.ceil(DUR - (performance.now()-qStart)/1000); drawT(); if (tLeft<=5 && tLeft>0) SFX.tick(tLeft<=3); if (tLeft<=0) reveal(); }, 250);
+  }
+  let lastDrawn = null;
+  function drawT(){ const v = Math.max(0,tLeft); if (v===lastDrawn) return; lastDrawn=v; $('timer').textContent = v; $('timer').classList.toggle('hurry', v<=5); }
+  function reveal(){
+    if (phase !== 'q') return; phase = 'reveal'; clearInterval(timerId); music(null); lastDrawn = null;
+    const Q = QUESTIONS[qi], cnt = Q.opts.map(()=>0);
+    Object.values(answers).forEach(a=>cnt[a.k]++);
+    [...$('hOpts').children].forEach((el,i)=>{ el.classList.add(i===Q.a?'win':'dim'); el.insertAdjacentHTML('beforeend', `<span class="cnt">${cnt[i]} 人</span>${i===Q.a?'<span class="ck">✔</span>':''}`); });
+    $('timer').style.visibility = 'hidden';
+    if (Q.ex) { $('qEx').textContent = '💡 ' + Q.ex; $('qEx').style.display = 'block'; }
+    Object.values(players).forEach(p=>{ const a = answers[p.pid]; if (a) p.score += a.pts; });
+    const r = ranked();
+    r.forEach((p,i)=>{ const a = answers[p.pid];
+      p.last = {t:'res', ok: !!a && a.k===Q.a, none:!a, pts: a?a.pts:0, score:p.score, rank:i+1, total:r.length, ans: Q.opts[Q.a]}; send(p, p.last); });
+    const right = Object.values(answers).filter(a=>a.k===Q.a).length;
+    SFX.ding(); if (right) setTimeout(()=>SFX.cheer(1.8), 300); confetti(80);
+    $('btnNext').textContent = qi === QUESTIONS.length-1 ? '看最後結果 ▶' : '排行榜 ▶';
+    $('btnNext').style.display = 'inline-block';
+  }
+  $('btnNext').onclick = () => { if (qi === QUESTIONS.length-1) return finale(); board(); };
+  function board(){
+    phase = 'board';
+    const r = ranked().slice(0,5);
+    $('rows').innerHTML = r.map((p,i)=>`<div class="brow" style="animation-delay:${i*.12}s"><span class="rk">${i+1}</span><span>${esc(p.name)}</span><span class="sc">${p.score}</span></div>`).join('') || '<p class="sub">還沒有人作答</p>';
+    show('board'); SFX.join(); music('lobby');
+  }
+  $('btnNext2').onclick = () => nextQ();
+  function finalMsg(p){ const r = ranked(); return {t:'final', rank:r.indexOf(p)+1, total:r.length, score:p.score}; }
+  function finale(){
+    phase = 'final'; music(null);
+    const r = ranked(), cols = {1:'.p1',2:'.p2',3:'.p3'};
+    document.querySelectorAll('.pcol').forEach(c=>c.classList.remove('up'));
+    [1,2,3].forEach(n=>{ const col = document.querySelector(cols[n]), p = r[n-1];
+      col.querySelector('.pn').textContent = p ? p.name : ''; col.querySelector('.ps').textContent = p ? p.score+' 分' : ''; col.style.visibility = p?'visible':'hidden'; });
+    show('final'); SFX.drum();
+    setTimeout(()=>document.querySelector('.p3').classList.add('up'), 600);
+    setTimeout(()=>document.querySelector('.p2').classList.add('up'), 1500);
+    setTimeout(()=>{ document.querySelector('.p1').classList.add('up'); SFX.fanfare(); setTimeout(()=>SFX.cheer(3.2),1200); confetti(260); setTimeout(()=>confetti(200),1500); }, 2500);
+    Object.values(players).forEach(p=>send(p, finalMsg(p)));
+  }
+  $('btnAgain').onclick = () => {
+    Object.values(players).forEach(p=>{ p.score = 0; p.last = null; send(p,{t:'again'}); });
+    phase = 'lobby'; qi = -1; show('lobby'); music('lobby');
+  };
+  addEventListener('keydown', e=>{
+    if (e.key!==' ' && e.key!=='Enter') return;
+    const b = document.querySelector('.scr.on .big-btn:not([disabled])');
+    if (b && b.offsetParent) { e.preventDefault(); b.click(); }
+  });
+}
+
+/* =================== 學生手機 =================== */
+function playerMain(){
+  let code = (params.get('r')||'').replace(/\D/g,'').slice(0,5), conn = null, name = '', curQ = -1, joined = false;
+  let pid = null; try { pid = sessionStorage.getItem('kq_pid'); } catch(e){}
+  if (!pid) { pid = 'u' + Math.random().toString(36).slice(2,10); try { sessionStorage.setItem('kq_pid', pid); } catch(e){} }
+  try { $('inName').value = sessionStorage.getItem('kq_name') || ''; } catch(e){}
+  $('inCode').value = code; if (code) $('inCode').style.display = 'none';
+  $('sndBtn').style.display = 'block';
+  show('pjoin');
+
+  $('btnJoin').onclick = () => {
+    audio();
+    code = $('inCode').value.replace(/\D/g,''); name = $('inName').value.trim();
+    if (code.length !== 5) { $('joinErr').textContent = '請輸入 5 位數房間號碼'; return; }
+    if (!name) { $('joinErr').textContent = '請輸入暱稱'; $('inName').focus(); return; }
+    try { sessionStorage.setItem('kq_name', name); } catch(e){}
+    $('joinErr').textContent = ''; $('btnJoin').disabled = true; $('btnJoin').textContent = '連線中…';
+    connect();
+  };
+  function connect(){
+    Net.join(code, {
+      open(c){ conn = c; joined = true; c.ondata = onData; c.onclose = () => { conn = null; setTimeout(retry, 1500); }; c.send({t:'join', pid, name}); },
+      fail(){
+        if (joined) return setTimeout(retry, 2000);
+        $('btnJoin').disabled = false; $('btnJoin').textContent = '加入！';
+        $('joinErr').textContent = '連不上，請確認房間號碼，或再按一次';
+        $('inCode').style.display = 'block';
+      }
+    });
+  }
+  function retry(){ if (!conn || !conn.open) { conn = null; connect(); } }
+  document.addEventListener('visibilitychange', ()=>{ if (!document.hidden && joined && (!conn || !conn.open)) retry(); });
+
+  function setMe(score){ $('meBar').style.display = 'flex'; $('meName').textContent = name; if (score!=null) $('meScore').textContent = score + ' 分'; }
+  function res(cls, a, b, c){ const r = $('pres'); r.className = 'res on ' + cls; $('r1').textContent = a; $('r2').textContent = b; $('r2').style.display = b ? 'block':'none'; $('r3').textContent = c; }
+  function hideRes(){ $('pres').className = 'res'; }
+
+  function onData(d){
+    if (!d) return;
+    if (d.t === 'hi') { name = d.name; setMe(d.score); hideRes(); show('pwait'); $('pwaitMsg').innerHTML = '你加入了！<small>看大螢幕，等老師開始</small>'; SFX.join(); }
+    if (d.t === 'full') { show('pwait'); $('pwaitMsg').innerHTML = '這一場已經結束了<small>請等下一場</small>'; }
+    if (d.t === 'q') {
+      curQ = d.i; hideRes(); show('pq');
+      $('pqText').textContent = `${d.i+1}/${d.n}　${d.q}`;
+      $('pOpts').className = 'pgrid' + (d.opts.length===2 ? ' two' : '');
+      $('pOpts').innerHTML = d.opts.map((o,i)=>`<button class="pbtn o${i}" data-k="${i}">${SHAPES[i]}<span>${esc(o)}</span></button>`).join('');
+      if (navigator.vibrate) navigator.vibrate(80);
+    }
+    if (d.t === 'sent') { res('wait', '已送出！', '', '看大螢幕等答案…'); }
+    if (d.t === 'res') {
+      setMe(d.score);
+      if (d.ok) { res('good', '答對了！', '+' + d.pts, `第 ${d.rank} 名`); SFX.ding(); confetti(90); if (navigator.vibrate) navigator.vibrate([60,40,60]); }
+      else { res('badr', d.none ? '時間到！' : '答錯了', '', `答案：${d.ans}　·　第 ${d.rank} 名`); SFX.buzz(); if (navigator.vibrate) navigator.vibrate(300); }
+    }
+    if (d.t === 'final') {
+      setMe(d.score); hideRes(); show('pfinal');
+      const medal = d.rank===1?'🥇':d.rank===2?'🥈':d.rank===3?'🥉':'⭐';
+      $('pfinalMsg').innerHTML = `<div style="font-size:2.2em">${medal}</div>第 ${d.rank} 名<small>${d.score} 分　·　共 ${d.total} 人</small><div style="margin-top:.6em;color:var(--gold)">🎉 恭喜過關！</div>`;
+      if (d.rank<=3) { SFX.fanfare(); confetti(220); } else { SFX.ding(); confetti(120); }
+    }
+    if (d.t === 'again') { hideRes(); show('pwait'); setMe(0); $('pwaitMsg').innerHTML = '再玩一次！<small>看大螢幕，等老師開始</small>'; }
+  }
+  $('pOpts').addEventListener('click', e => {
+    const b = e.target.closest('.pbtn'); if (!b || !conn) return;
+    audio(); SFX.tick(true);
+    conn.send({t:'ans', pid, i:curQ, k:+b.dataset.k});
+    [...$('pOpts').children].forEach(x=>x.style.opacity = x===b ? '1' : '.3');
+  });
+}
+
+if (params.has('r') || params.has('join')) playerMain(); else hostMain();
+</script>
+</body>
+</html>
