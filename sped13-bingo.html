@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>13類身障賓果</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+/* ====== 提示在下方 <script> 的 CATS 裡，可直接改文字 ====== */
+:root{
+  --bg:#E8EEF4; --ink:#1B2A3A; --muted:#5B6B7C;
+  --orange:#F07A1A; --orange-d:#C45E0A; --navy:#21365A; --gold:#FFC83D; --ok:#2FBF4A;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;user-select:none}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;padding:2vh 2vw;overflow:hidden}
+.scr.on{display:flex}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+.btn{border:0;border-radius:999px;font:inherit;font-weight:900;cursor:pointer;background:var(--orange);color:#fff;
+  font-size:clamp(18px,2.2vw,32px);padding:.35em 1em;box-shadow:0 .16em 0 var(--orange-d);transition:transform .1s;white-space:nowrap}
+.btn:active{transform:translateY(.1em);box-shadow:0 .06em 0 var(--orange-d)}
+.btn.ghost{background:#fff;color:var(--navy);box-shadow:0 .16em 0 #B9C4D0}
+.btn.gold{background:var(--gold);color:var(--navy);box-shadow:0 .16em 0 #B8860B}
+.btn:disabled{opacity:.4;cursor:default}
+h1{font-weight:900;font-size:clamp(28px,4.6vw,64px);line-height:1.1}
+h1 .hl{color:var(--orange)}
+
+/* ---------- 主持（投影） ---------- */
+#host header{display:flex;align-items:center;justify-content:space-between;width:100%;gap:1em}
+#host .tools{display:flex;gap:.6em}
+.main{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2.4vh;min-height:0}
+.cnt{font-size:clamp(20px,2.6vw,38px);font-weight:900;color:var(--muted)}
+.clue{width:min(1400px,94vw);min-height:22vh;background:#fff;border-radius:28px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:900;font-size:clamp(32px,5.4vw,84px);line-height:1.3;padding:.4em .8em;box-shadow:0 .6vh 0 rgba(0,0,0,.15)}
+.clue.wait{color:var(--muted);font-size:clamp(26px,3.6vw,56px)}
+.answer{min-height:1.3em;font-weight:900;font-size:clamp(40px,7vw,110px);color:#fff;background:var(--orange);border-radius:22px;padding:0 .6em;
+  box-shadow:0 .1em 0 var(--orange-d);visibility:hidden}
+.answer.on{visibility:visible}
+.acts{display:flex;gap:1.2vw}
+.acts .btn{font-size:clamp(24px,3.2vw,48px)}
+.called{width:calc(100% - clamp(44px,6vh,60px) - 1vw);align-self:flex-start;display:grid;grid-template-columns:repeat(13,1fr);gap:.6vw;margin-top:1vh}
+.called div{background:#fff;border-radius:12px;text-align:center;font-weight:900;font-size:clamp(12px,1.35vw,22px);padding:.5em .2em;color:#B5C0CC;
+  border:3px solid transparent;line-height:1.25}
+.called div.on{background:var(--navy);color:#fff}
+.called div.now{border-color:var(--gold)}
+.pop{animation:pop .45s cubic-bezier(.2,1.6,.5,1) both}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+
+/* 彈出視窗 */
+.modal{position:fixed;inset:0;background:rgba(20,30,45,.55);display:none;align-items:center;justify-content:center;z-index:40}
+.modal.on{display:flex}
+.box{background:#fff;border-radius:24px;padding:3vh 3vw;display:flex;flex-direction:column;align-items:center;gap:2vh;max-width:94vw;text-align:center}
+.box h2{font-size:clamp(26px,3.4vw,50px);font-weight:900}
+.box p{font-size:clamp(18px,2vw,30px);font-weight:700;color:var(--muted)}
+#qr{background:#fff;padding:12px;border-radius:12px}
+#qr img,#qr canvas{width:min(42vh,60vw)!important;height:auto!important;display:block}
+.url{font-size:clamp(14px,1.6vw,22px);color:var(--muted);word-break:break-all}
+.nrow{display:flex;align-items:center;gap:.6em;font-size:clamp(20px,2.4vw,34px);font-weight:900}
+.nrow input{font:inherit;width:4.5em;text-align:center;border:3px solid #C9D3DE;border-radius:12px;padding:.1em}
+
+/* ---------- 手機賓果卡 ---------- */
+#card{justify-content:center;gap:2vh;padding:2vh 3vw}
+#card h1{font-size:clamp(26px,7vw,48px)}
+.cardrow{display:flex;align-items:center;justify-content:center;gap:4vw;width:100%}
+.hint{font-size:clamp(16px,4vw,24px);font-weight:700;color:var(--muted);text-align:center}
+.bgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:min(92vw,62vh);aspect-ratio:1}
+.cell{position:relative;background:#fff;border-radius:16px;display:flex;align-items:center;justify-content:center;text-align:center;
+  font-weight:900;font-size:clamp(16px,min(5.4vw,3.8vh),36px);line-height:1.2;padding:.2em;cursor:pointer;box-shadow:0 5px 0 rgba(0,0,0,.15);
+  border:4px solid var(--navy)}
+.cell:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.cell.on{background:var(--orange);color:#fff;border-color:var(--orange-d)}
+.cell.on::after{content:"⭐";position:absolute;top:2px;right:6px;font-size:.8em}
+.cell.win{background:var(--ok);border-color:#1E8A33}
+.bingo{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;gap:2vh;background:rgba(33,54,90,.9);z-index:45;color:#fff}
+.bingo.on{display:flex}
+.bingo b{font-size:clamp(70px,20vw,180px);font-weight:900;color:var(--gold);animation:pop .5s cubic-bezier(.2,1.6,.5,1) both}
+.bingo span{font-size:clamp(24px,6vw,44px);font-weight:900}
+@media (orientation:landscape) and (max-height:600px){
+  #card{flex-direction:row;gap:5vw}
+  #card .side{display:flex;flex-direction:column;align-items:center;gap:2vh;max-width:40vw}
+  .bgrid{width:86vh}
+  .cell{font-size:clamp(16px,4.6vh,34px)}
+}
+
+/* ---------- 列印 ---------- */
+#print{position:static;display:none;padding:0;overflow:visible;background:#fff}
+#print.on{display:block}
+.pbar{display:flex;align-items:center;justify-content:center;gap:1em;padding:1em;background:var(--bg);flex-wrap:wrap}
+.sheet{width:210mm;height:297mm;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;gap:8mm;padding:10mm;page-break-after:always;break-after:page;background:#fff}
+.pc{border:1.2mm solid var(--navy);border-radius:5mm;padding:4mm;display:flex;flex-direction:column;gap:3mm}
+.pc .ph{display:flex;justify-content:space-between;align-items:baseline;font-weight:900;font-size:7mm}
+.pc .ph small{font-size:4mm;color:var(--muted)}
+.pg{flex:1;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);gap:2mm}
+.pg div{border:.6mm solid #7A8796;border-radius:2.5mm;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:900;font-size:5mm;line-height:1.2;padding:1mm}
+.pc .pf{font-size:3.6mm;color:var(--muted);text-align:center}
+@media print{
+  @page{size:A4;margin:0}
+  body{background:#fff}
+  .pbar,.sndbtn{display:none!important}
+  .sheet{margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+}
+
+.sndbtn{position:fixed;right:1.2vw;bottom:1.6vh;z-index:60;width:clamp(44px,6vh,60px);height:clamp(44px,6vh,60px);border-radius:50%;border:0;
+  background:#fff;font-size:clamp(22px,3vh,30px);cursor:pointer;box-shadow:0 .3vh 0 rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<!-- ======== 主持人（投影） ======== -->
+<section class="scr" id="host">
+  <header>
+    <h1>13類身障<span class="hl">賓果</span></h1>
+    <div class="tools">
+      <button class="btn ghost" id="btnQR">📱 手機賓果卡</button>
+      <button class="btn ghost" id="btnPrint">🖨️ 列印賓果卡</button>
+      <button class="btn ghost" id="btnReset">↺ 重來</button>
+    </div>
+  </header>
+  <div class="main">
+    <div class="cnt" id="cnt">準備好賓果卡了嗎？</div>
+    <div class="clue wait" id="clue">按「抽提示」開始！<br>聽提示，圈出是哪一類</div>
+    <div class="answer" id="answer"></div>
+    <div class="acts">
+      <button class="btn" id="btnDraw">🎲 抽提示</button>
+      <button class="btn ghost" id="btnShow" disabled>揭曉答案</button>
+      <button class="btn gold" id="btnBingo">🎉 有人賓果！</button>
+    </div>
+  </div>
+  <div class="called" id="called"></div>
+</section>
+
+<div class="modal" id="mQR">
+  <div class="box">
+    <h2>手機掃 QR code，拿一張賓果卡</h2>
+    <div id="qr"></div>
+    <div class="url" id="qrUrl"></div>
+    <button class="btn" id="btnQRClose">好了！</button>
+  </div>
+</div>
+
+<!-- ======== 手機賓果卡 ======== -->
+<section class="scr" id="card">
+  <div class="side">
+    <h1>13類身障<span class="hl">賓果</span></h1>
+    <p class="hint">聽提示，點一下是哪一類<br>連成一條線就賓果！</p>
+  </div>
+  <div class="bgrid" id="bgrid"></div>
+</section>
+<div class="bingo" id="bingo"><b>BINGO!</b><span>🎉 恭喜過關！</span><button class="btn gold" id="btnBingoClose">繼續玩</button></div>
+
+<!-- ======== 列印 ======== -->
+<section class="scr" id="print">
+  <div class="pbar">
+    <span class="nrow">要印 <input id="inN" type="number" min="4" max="400" step="4" value="100"> 張</span>
+    <button class="btn" id="btnMake">產生</button>
+    <button class="btn gold" id="btnDoPrint">🖨️ 列印</button>
+    <button class="btn ghost" id="btnPBack">◀ 回主持畫面</button>
+  </div>
+  <div id="sheets"></div>
+</section>
+
+<button class="sndbtn" id="sndBtn" title="音效">🔊</button>
+
+<script>
+/* =========================================================
+   13 類：name = 類別（賓果卡上的字），clue = 主持人唸的提示
+   ========================================================= */
+const CATS = [
+  { name:"智能障礙",     clue:"學習和理解比較慢，生活自理也要多練習" },
+  { name:"視覺障礙",     clue:"看不清楚或看不見，很多人是弱視" },
+  { name:"聽覺障礙",     clue:"聽不清楚，要靠助聽器、讀唇或手語" },
+  { name:"語言障礙",     clue:"說話會結巴，或是發音不清楚" },
+  { name:"肢體障礙",     clue:"手腳活動不方便，可能用輪椅或拐杖" },
+  { name:"腦性麻痺",     clue:"大腦很早就受傷，影響動作和姿勢" },
+  { name:"身體病弱",     clue:"長期生病，常常要請假去醫院" },
+  { name:"情緒行為障礙", clue:"情緒反應特別強烈，很難控制住" },
+  { name:"學習障礙",     clue:"智力正常，但讀、寫、算特別困難" },
+  { name:"多重障礙",     clue:"同時有兩種以上的障礙" },
+  { name:"自閉症",       clue:"社交溝通有困難，興趣很固定" },
+  { name:"發展遲緩",     clue:"未滿 6 歲，發展比同齡孩子慢" },
+  { name:"其他障礙",     clue:"前面 12 類都放不進去" },
+];
+const LINES = [[0,1,2],[3,4,5],[6,7,8],[0,3,6],[1,4,7],[2,5,8],[0,4,8],[2,4,6]];
+
+const $ = id => document.getElementById(id);
+const params = new URLSearchParams(location.search);
+const store = { get(k,d){ try { const v = localStorage.getItem(k); return v==null ? d : JSON.parse(v); } catch(e){ return d; } },
+                set(k,v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} } };
+const shuffle = a => { a = a.slice(); for (let i=a.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]] = [a[j],a[i]]; } return a; };
+const label = n => n.length > 4 ? n.slice(0,4) + '<br>' + n.slice(4) : n;   // 情緒行為障礙 分兩行
+const newCard = () => shuffle(CATS.map((_,i)=>i)).slice(0,9);
+function show(id){ document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on', s.id===id)); }
+
+/* ---------- 主持 ---------- */
+let order = store.get('bingo_order', null), pos = store.get('bingo_pos', 0), shown = store.get('bingo_shown', false);
+if (!Array.isArray(order) || order.length !== CATS.length) { order = shuffle(CATS.map((_,i)=>i)); pos = 0; shown = false; }
+const saveHost = () => { store.set('bingo_order', order); store.set('bingo_pos', pos); store.set('bingo_shown', shown); };
+
+function drawCalled(){
+  const done = new Set(order.slice(0, shown ? pos : pos-1));
+  const now = pos > 0 ? order[pos-1] : -1;
+  $('called').innerHTML = CATS.map((c,i)=>`<div class="${done.has(i)?'on':''} ${i===now&&shown?'now':''}">${c.name}</div>`).join('');
+}
+function renderHost(){
+  if (pos === 0) {
+    $('cnt').textContent = '準備好賓果卡了嗎？';
+    $('clue').className = 'clue wait'; $('clue').innerHTML = '按「抽提示」開始！<br>聽提示，圈出是哪一類';
+    $('answer').classList.remove('on');
+  } else {
+    const c = CATS[order[pos-1]];
+    $('cnt').textContent = `第 ${pos} 個提示（共 ${CATS.length} 個）`;
+    $('clue').className = 'clue'; $('clue').textContent = c.clue;
+    $('answer').textContent = c.name; $('answer').classList.toggle('on', shown);
+  }
+  $('btnShow').disabled = pos === 0 || shown;
+  $('btnDraw').disabled = pos >= CATS.length && shown;
+  $('btnDraw').textContent = pos >= CATS.length && shown ? '全部抽完了' : '🎲 抽提示';
+  drawCalled();
+}
+$('btnDraw').onclick = () => {
+  if (pos > 0 && !shown) { reveal(); return; }   // 還沒揭曉就先揭曉
+  if (pos >= CATS.length) return;
+  pos++; shown = false; saveHost();
+  drum(14, () => { renderHost(); const el = $('clue'); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); });
+};
+function reveal(){
+  if (pos === 0 || shown) return;
+  shown = true; saveHost(); renderHost();
+  const el = $('answer'); el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop'); ding();
+}
+$('btnShow').onclick = reveal;
+$('btnBingo').onclick = () => cheer(true);
+$('btnReset').onclick = () => { if (!confirm('重新開始一局？')) return; order = shuffle(CATS.map((_,i)=>i)); pos = 0; shown = false; saveHost(); renderHost(); };
+document.addEventListener('keydown', e => {
+  if (!$('host').classList.contains('on') || $('mQR').classList.contains('on')) return;
+  if (e.key===' '||e.key==='Enter'||e.key==='ArrowRight'){ e.preventDefault(); $('btnDraw').click(); }
+  if (e.key==='b'||e.key==='B') cheer(true);
+});
+
+/* QR */
+const cardUrl = () => location.href.split('?')[0].split('#')[0] + '?card=1';
+let qrDone = false;
+$('btnQR').onclick = () => {
+  $('mQR').classList.add('on'); $('qrUrl').textContent = cardUrl();
+  if (qrDone) return; qrDone = true;
+  if (typeof QRCode !== 'undefined') new QRCode($('qr'), { text: cardUrl(), width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+  else $('qr').innerHTML = `<img alt="QR code" src="https://api.qrserver.com/v1/create-qr-code/?size=512x512&data=${encodeURIComponent(cardUrl())}">`;
+};
+$('btnQRClose').onclick = () => $('mQR').classList.remove('on');
+
+/* ---------- 列印 ---------- */
+$('btnPrint').onclick = () => { show('print'); if (!$('sheets').children.length) makeSheets(); };
+$('btnPBack').onclick = () => show('host');
+$('btnMake').onclick = makeSheets;
+$('btnDoPrint').onclick = () => window.print();
+function makeSheets(){
+  const n = Math.max(4, Math.min(400, Math.ceil((+$('inN').value || 100) / 4) * 4));
+  $('inN').value = n;
+  const seen = new Set(); let html = '', cards = [];
+  for (let k=0;k<n;k++){
+    let c, key, tries = 0;
+    do { c = newCard(); key = c.join(','); } while (seen.has(key) && ++tries < 50);
+    seen.add(key); cards.push(c);
+  }
+  for (let p=0;p<n/4;p++){
+    html += '<div class="sheet">' + cards.slice(p*4, p*4+4).map((c,j)=>`
+      <div class="pc"><div class="ph">13類身障賓果 <small>No.${p*4+j+1}</small></div>
+      <div class="pg">${c.map(i=>`<div>${label(CATS[i].name)}</div>`).join('')}</div>
+      <div class="pf">連成一條線就喊「賓果」！</div></div>`).join('') + '</div>';
+  }
+  $('sheets').innerHTML = html;
+}
+
+/* ---------- 手機賓果卡 ---------- */
+let myCard = store.get('bingo_card', null), marks = store.get('bingo_marks', []), won = store.get('bingo_won', false);
+function renderCard(){
+  if (!Array.isArray(myCard) || myCard.length !== 9 || myCard.some(i=>!(i>=0 && i<CATS.length))) {
+    myCard = newCard(); marks = []; won = false; store.set('bingo_card', myCard); store.set('bingo_marks', marks); store.set('bingo_won', won);
+  }
+  const winLine = LINES.find(l => l.every(i => marks.includes(i)));
+  $('bgrid').innerHTML = myCard.map((c,i)=>`<div class="cell ${marks.includes(i)?'on':''} ${winLine&&winLine.includes(i)?'win':''}" data-i="${i}">${label(CATS[c].name)}</div>`).join('');
+  return winLine;
+}
+$('bgrid').onclick = e => {
+  const c = e.target.closest('.cell'); if (!c) return;
+  const i = +c.dataset.i;
+  marks = marks.includes(i) ? marks.filter(x=>x!==i) : marks.concat(i);
+  store.set('bingo_marks', marks); tick();
+  const line = renderCard();
+  if (line && !won) { won = true; store.set('bingo_won', true); $('bingo').classList.add('on'); cheer(true); }
+  if (!line && won) { won = false; store.set('bingo_won', false); }
+};
+$('btnBingoClose').onclick = () => $('bingo').classList.remove('on');
+
+/* ---------- 音效 ---------- */
+let AC = null, sndOn = store.get('bingo_snd', true);
+$('sndBtn').textContent = sndOn ? '🔊' : '🔇';
+$('sndBtn').onclick = () => { sndOn = !sndOn; $('sndBtn').textContent = sndOn ? '🔊' : '🔇'; store.set('bingo_snd', sndOn); };
+function ac(){ if (!AC) { try { AC = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } if (AC && AC.state==='suspended') AC.resume(); return AC; }
+function tone(f, t0, dur, type='sine', vol=.3){
+  const a = ac(); if (!a || !sndOn) return;
+  const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, a.currentTime+t0); g.gain.linearRampToValueAtTime(vol, a.currentTime+t0+.01);
+  g.gain.exponentialRampToValueAtTime(.001, a.currentTime+t0+dur);
+  o.connect(g).connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+dur+.05);
+}
+function noise(t0, dur, vol=.25){
+  const a = ac(); if (!a || !sndOn) return;
+  const buf = a.createBuffer(1, Math.floor(a.sampleRate*dur), a.sampleRate), d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/d.length, 3);
+  const s = a.createBufferSource(), g = a.createGain(), f = a.createBiquadFilter();
+  f.type='lowpass'; f.frequency.value = 900; s.buffer = buf; g.gain.value = vol;
+  s.connect(f).connect(g).connect(a.destination); s.start(a.currentTime+t0);
+}
+const tick = () => tone(900, 0, .07, 'square', .12);
+const ding = () => { [784,1047].forEach((f,i)=>tone(f, i*.1, .5, 'triangle', .35)); };
+function drum(n, done){ for (let i=0;i<n;i++) noise(i*.06, .07, .35); setTimeout(done, n*60); }
+function cheer(big){
+  confetti();
+  if (!ac() || !sndOn) return;
+  [523,659,784,1047,1319].forEach((f,i)=>tone(f, i*.1, .6, 'triangle', .3));
+  if (big) for (let i=0;i<26;i++) noise(.1+Math.random()*1.6, .25, .12);
+}
+
+/* ---------- 彩帶 ---------- */
+const cv = $('fx'), cx = cv.getContext('2d'); let bits = [], raf = 0;
+function fit(){ cv.width = innerWidth*devicePixelRatio; cv.height = innerHeight*devicePixelRatio; }
+addEventListener('resize', fit); fit();
+function confetti(){
+  const cols = ['#F07A1A','#FFC83D','#2FBF4A','#1368CE','#E21B3C','#B05CFF'];
+  for (let i=0;i<200;i++) bits.push({x:Math.random()*cv.width, y:-Math.random()*cv.height*.4, vx:(Math.random()-.5)*4, vy:2+Math.random()*5,
+    r:Math.random()*6.28, vr:(Math.random()-.5)*.3, w:8+Math.random()*10, h:5+Math.random()*6, c:cols[i%cols.length], life:0});
+  if (!raf) loop();
+}
+function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  bits = bits.filter(b => b.y < cv.height+40 && b.life < 280);
+  bits.forEach(b => { b.x+=b.vx*devicePixelRatio; b.y+=b.vy*devicePixelRatio; b.r+=b.vr; b.life++;
+    cx.save(); cx.translate(b.x,b.y); cx.rotate(b.r); cx.fillStyle=b.c; cx.fillRect(-b.w/2,-b.h/2,b.w,b.h); cx.restore(); });
+  raf = bits.length ? requestAnimationFrame(loop) : 0;
+  if (!raf) cx.clearRect(0,0,cv.width,cv.height);
+}
+
+/* ---------- 開始 ---------- */
+if (params.has('card')) { show('card'); renderCard(); if (won) $('bingo').classList.remove('on'); }
+else if (params.has('print')) { show('print'); makeSheets(); }
+else { show('host'); renderHost(); }
+</script>
+</body>
+</html>
