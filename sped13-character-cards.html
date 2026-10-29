@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>猜猜我是誰</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@500;700;900&display=swap">
+<style>
+/* ====== 角色內容在下方 <script> 的 CARDS 裡，可直接改文字 ====== */
+:root{
+  --bg:#E8EEF4; --ink:#1B2A3A; --muted:#5B6B7C; --card:#fff;
+  --orange:#F07A1A; --orange-d:#C45E0A; --navy:#21365A; --gold:#FFC83D;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;overflow:hidden;user-select:none}
+.scr{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;padding:2vh 2vw}
+.scr.on{display:flex}
+canvas#fx{position:fixed;inset:0;pointer-events:none;z-index:50}
+
+/* 首頁：13 張牌 */
+header{display:flex;align-items:center;justify-content:space-between;width:100%;gap:1em;margin-bottom:1.5vh}
+h1{font-weight:900;font-size:clamp(28px,4.6vw,64px);line-height:1.1}
+h1 .hl{color:var(--orange)}
+.tools{display:flex;gap:.6em;align-items:center}
+.btn{border:0;border-radius:999px;font:inherit;font-weight:900;cursor:pointer;background:var(--orange);color:#fff;
+  font-size:clamp(18px,2.2vw,32px);padding:.35em 1em;box-shadow:0 .16em 0 var(--orange-d);transition:transform .1s}
+.btn:active{transform:translateY(.1em);box-shadow:0 .06em 0 var(--orange-d)}
+.btn.ghost{background:#fff;color:var(--navy);box-shadow:0 .16em 0 #B9C4D0}
+.grid{flex:1;width:100%;display:flex;flex-wrap:wrap;justify-content:center;align-content:stretch;gap:1.4vh 1.2vw;min-height:0}
+.grid .c{width:calc((100% - 4*1.2vw)/5);height:calc((100% - 2*1.4vh)/3)}
+.c{perspective:900px;cursor:pointer;min-height:0}
+.c .in{position:relative;width:100%;height:100%;transition:transform .6s;transform-style:preserve-3d}
+.c.done .in{transform:rotateY(180deg)}
+.c .f,.c .b{position:absolute;inset:0;border-radius:18px;backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 .4vh 0 rgba(0,0,0,.18)}
+.c .f{background:linear-gradient(150deg,var(--navy),#3A5A8C);color:#fff}
+.c .f .n{font-size:clamp(34px,6vh,80px);font-weight:900;line-height:1}
+.c .f .q{font-size:clamp(18px,3vh,36px);font-weight:700;color:var(--gold)}
+.c .f::after{content:"";position:absolute;inset:6px;border:3px dashed rgba(255,255,255,.35);border-radius:14px}
+.c .b{background:#fff;transform:rotateY(180deg);border:4px solid var(--orange)}
+.c .b .e{font-size:clamp(30px,6vh,72px);line-height:1}
+.c .b .t{font-size:clamp(18px,3.2vh,38px);font-weight:900;color:var(--ink);margin-top:.15em}
+.c:hover .f{filter:brightness(1.12)}
+
+/* 角色頁 */
+#who{justify-content:center;gap:3vh;padding-top:9vh}
+#who.rev{gap:2vh}
+#who.rev .av{width:clamp(90px,17vh,210px);height:clamp(90px,17vh,210px);font-size:clamp(56px,10vh,130px)}
+#who.rev .av .nm{font-size:clamp(18px,3vh,34px)}
+#who.rev .bubble{font-size:clamp(22px,3.3vw,50px);padding:.6em 1em}
+.bar{position:absolute;top:2vh;left:2vw;right:2vw;display:flex;justify-content:space-between;align-items:center}
+.tag{background:var(--navy);color:#fff;border-radius:999px;padding:.25em .9em;font-weight:900;font-size:clamp(18px,2.4vw,34px)}
+.stage{display:flex;align-items:center;gap:4vw;width:min(1500px,96vw)}
+.av{flex:none;width:clamp(150px,26vh,320px);height:clamp(150px,26vh,320px);border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-size:clamp(90px,16vh,200px);background:#fff;box-shadow:0 .6vh 0 rgba(0,0,0,.15);position:relative}
+.av .nm{position:absolute;bottom:-.6em;left:50%;transform:translateX(-50%);background:var(--orange);color:#fff;font-weight:900;
+  font-size:clamp(22px,4vh,44px);padding:.1em .8em;border-radius:999px;white-space:nowrap}
+.bubble{flex:1;background:#fff;border-radius:28px;padding:1em 1.2em;font-weight:900;font-size:clamp(30px,5vw,76px);line-height:1.35;position:relative;
+  box-shadow:0 .6vh 0 rgba(0,0,0,.15)}
+.bubble::before{content:"";position:absolute;left:-28px;top:50%;margin-top:-22px;border:22px solid transparent;border-right:30px solid #fff;border-left:0}
+.ask{font-size:clamp(26px,4vw,56px);font-weight:900;color:var(--navy)}
+.ask b{color:var(--orange)}
+.pop{animation:pop .45s cubic-bezier(.2,1.6,.5,1) both}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+
+/* 揭曉 */
+#ans{display:none;flex-direction:column;align-items:center;gap:2.2vh;width:min(1500px,96vw)}
+#ans.on{display:flex}
+.cat{display:flex;align-items:center;gap:.3em;background:var(--orange);color:#fff;font-weight:900;font-size:clamp(40px,min(7vw,13vh),120px);
+  padding:.05em .6em;border-radius:24px;box-shadow:0 .1em 0 var(--orange-d)}
+.lines{display:flex;gap:2vw;width:100%}
+.ln{flex:1;background:#fff;border-radius:20px;padding:.5em .9em;font-size:clamp(20px,min(2.8vw,5.6vh),46px);font-weight:700;line-height:1.35;box-shadow:0 .4vh 0 rgba(0,0,0,.12)}
+.ln .k{display:block;font-size:.7em;font-weight:900;color:var(--orange);margin-bottom:.15em}
+
+.sndbtn{position:fixed;right:1.2vw;bottom:1.6vh;z-index:60;width:clamp(44px,6vh,60px);height:clamp(44px,6vh,60px);border-radius:50%;border:0;
+  background:#fff;font-size:clamp(22px,3vh,30px);cursor:pointer;box-shadow:0 .3vh 0 rgba(0,0,0,.15)}
+
+/* 手機直向／小螢幕 */
+@media (max-aspect-ratio:1/1){
+  .grid{overflow:auto}
+  .grid .c{width:calc((100% - 2*1.2vw)/3);height:16vh}
+  .stage{flex-direction:column}
+  .bubble::before{display:none}
+  .lines{flex-direction:column}
+}
+@media (max-height:500px){
+  header{margin-bottom:.8vh}
+  .c .f::after{inset:3px;border-width:2px}
+  .stage{gap:3vw}
+  #who{gap:2vh}
+}
+</style>
+</head>
+<body>
+<canvas id="fx"></canvas>
+
+<section class="scr on" id="home">
+  <header>
+    <h1>猜猜<span class="hl">我是誰？</span></h1>
+    <div class="tools">
+      <button class="btn" id="btnRand">🎲 抽一張</button>
+      <button class="btn ghost" id="btnReset">↺ 重來</button>
+    </div>
+  </header>
+  <div class="grid" id="grid"></div>
+</section>
+
+<section class="scr" id="who">
+  <div class="bar">
+    <button class="btn ghost" id="btnBack">◀ 回牌桌</button>
+    <span class="tag" id="whoNum">第 1 張</span>
+  </div>
+  <div class="stage pop" id="stage">
+    <div class="av"><span id="avEmoji">🙋</span><span class="nm" id="avName"></span></div>
+    <div class="bubble" id="bubble"></div>
+  </div>
+  <div class="ask" id="askLine">我是 13 類中的<b>哪一類</b>？</div>
+  <button class="btn" id="btnReveal" style="font-size:clamp(26px,3.6vw,52px)">揭曉答案！</button>
+  <div id="ans">
+    <div class="cat pop" id="cat"></div>
+    <div class="lines">
+      <div class="ln"><span class="k">我的狀況</span><span id="lnA"></span></div>
+      <div class="ln"><span class="k">你可以這樣幫我</span><span id="lnB"></span></div>
+    </div>
+  </div>
+</section>
+
+<button class="sndbtn" id="sndBtn" title="音效">🔊</button>
+
+<script>
+/* =========================================================
+   角色：name = 角色名字，say = 角色說的話（給觀眾猜），
+   cat = 類別，icon = 揭曉時的圖示，a = 我的狀況，b = 你可以這樣幫我
+   ========================================================= */
+const CARDS = [
+  { name:"阿傑", av:"🧑", say:"新的事情，請一步一步教我，多教幾次我就學會！",
+    cat:"智能障礙", icon:"🧩", a:"學習和理解比較慢，生活自理也需要練習", b:"步驟拆小、多示範、多鼓勵" },
+  { name:"小晴", av:"👩", say:"投影片的字太小了，我要靠放大鏡或報讀軟體。",
+    cat:"視覺障礙", icon:"👓", a:"看不清楚或看不見，很多人是弱視", b:"給電子檔、說出來，不亂移我的東西" },
+  { name:"阿宏", av:"👦", say:"你在我背後叫我，我真的不是故意不理你！",
+    cat:"聽覺障礙", icon:"👂", a:"聽不清楚或聽不到，靠助聽器、讀唇、手語", b:"面對我說話、加字幕、用寫的" },
+  { name:"小安", av:"👧", say:"我有好多話想說，可是一開口就卡住…請等我說完。",
+    cat:"語言障礙", icon:"🗣️", a:"口吃、發音不清楚，或表達有困難", b:"耐心等，不要幫我把話講完" },
+  { name:"大維", av:"🧔", say:"教室在三樓又沒有電梯，對我來說像在爬山。",
+    cat:"肢體障礙", icon:"♿", a:"手腳或身體活動不方便", b:"無障礙空間；要幫忙前先問我" },
+  { name:"小芸", av:"👩‍🦱", say:"我走路搖搖晃晃、說話比較慢，但我的腦袋很清楚！",
+    cat:"腦性麻痺", icon:"🧠", a:"大腦很早就受傷，影響動作和姿勢", b:"給我多一點時間，不要催我" },
+  { name:"子涵", av:"👱‍♀️", say:"我常常要請假去醫院，不是在偷懶喔。",
+    cat:"身體病弱", icon:"🏥", a:"長期生病要治療，體力不好", b:"幫我留講義、彈性補交作業" },
+  { name:"阿凱", av:"🧑‍🦱", say:"情緒一來就像火山爆發，其實我也很想控制住。",
+    cat:"情緒行為障礙", icon:"🌋", a:"情緒或行為反應比一般人強烈很多", b:"給我冷靜的空間，平靜地回應我" },
+  { name:"小宇", av:"👨", say:"我很聰明，但課本上的字一直在跳來跳去！",
+    cat:"學習障礙", icon:"✏️", a:"智力正常，但讀、寫或算數特別困難", b:"有聲書、打字代替手寫、延長考試時間" },
+  { name:"小芳", av:"👩‍🦰", say:"我看不清楚，也聽不太到，需要好幾種幫忙。",
+    cat:"多重障礙", icon:"➕", a:"同時有兩種以上的障礙", b:"老師、家人、治療師一起合作" },
+  { name:"柏翰", av:"🧑‍🎓", say:"我最愛鐵道！可是我常聽不懂別人的弦外之音。",
+    cat:"自閉症", icon:"🚆", a:"社交溝通有困難，興趣很固定", b:"說話直接清楚，有變動先告訴我" },
+  { name:"小寶", av:"👶", say:"我 4 歲了，走路和說話都比同齡小朋友慢一點。",
+    cat:"發展遲緩", icon:"🌱", a:"未滿 6 歲，發展比同齡孩子慢", b:"越早做早期療育越好" },
+  { name:"小傑", av:"🧑‍🦰", say:"我的狀況不在前面 12 類裡，但我一樣需要支持！",
+    cat:"其他障礙", icon:"❓", a:"影響學習，但放不進前 12 類", b:"了解我的需求，一起想辦法" },
+];
+
+const $ = id => document.getElementById(id);
+let cur = -1, done = new Set();
+try { JSON.parse(localStorage.getItem('sped13_done')||'[]').forEach(i=>done.add(i)); } catch(e){}
+const save = () => { try { localStorage.setItem('sped13_done', JSON.stringify([...done])); } catch(e){} };
+
+/* ---------- 牌桌 ---------- */
+function drawGrid(){
+  $('grid').innerHTML = CARDS.map((c,i)=>`
+    <div class="c${done.has(i)?' done':''}" data-i="${i}"><div class="in">
+      <div class="f"><div class="n">${i+1}</div><div class="q">我是誰？</div></div>
+      <div class="b"><div class="e">${c.icon}</div><div class="t">${c.cat}</div></div>
+    </div></div>`).join('');
+}
+$('grid').onclick = e => { const c = e.target.closest('.c'); if (c) openCard(+c.dataset.i); };
+$('btnRand').onclick = () => {
+  const left = CARDS.map((_,i)=>i).filter(i=>!done.has(i));
+  if (!left.length) { cheer(); return; }
+  const cards = [...document.querySelectorAll('.c')]; let n = 0, pick;
+  const spin = setInterval(()=>{
+    cards.forEach(c=>c.style.outline='');
+    pick = left[Math.floor(Math.random()*left.length)];
+    cards[pick].style.outline = '6px solid var(--gold)'; tick(); n++;
+    if (n > 12) { clearInterval(spin); setTimeout(()=>{ cards[pick].style.outline=''; openCard(pick); }, 450); }
+  }, 110);
+};
+$('btnReset').onclick = () => { if (!confirm('把 13 張牌全部蓋回去？')) return; done.clear(); save(); drawGrid(); };
+
+/* ---------- 角色頁 ---------- */
+function openCard(i){
+  cur = i; const c = CARDS[i];
+  $('whoNum').textContent = `第 ${i+1} 張`;
+  $('avEmoji').textContent = c.av; $('avName').textContent = c.name;
+  $('bubble').textContent = c.say;
+  $('cat').innerHTML = `${c.icon} ${c.cat}`;
+  $('lnA').textContent = c.a; $('lnB').textContent = c.b;
+  $('who').classList.remove('rev'); $('ans').classList.remove('on'); $('btnReveal').style.display = ''; $('askLine').style.display = '';
+  $('stage').style.display = '';
+  const s = $('stage'); s.classList.remove('pop'); void s.offsetWidth; s.classList.add('pop');
+  show('who'); whoosh();
+}
+function reveal(){
+  if (cur < 0 || $('ans').classList.contains('on')) return;
+  $('btnReveal').style.display = 'none'; $('askLine').style.display = 'none';
+  drum(() => {
+    $('who').classList.add('rev'); $('ans').classList.add('on');
+    const k = $('cat'); k.classList.remove('pop'); void k.offsetWidth; k.classList.add('pop');
+    done.add(cur); save(); cheer();
+  });
+}
+$('btnReveal').onclick = reveal;
+$('btnBack').onclick = back;
+function back(){ show('home'); drawGrid(); if (done.size === CARDS.length) setTimeout(cheer, 700); }
+function show(id){ document.querySelectorAll('.scr').forEach(s=>s.classList.toggle('on', s.id===id)); }
+document.addEventListener('keydown', e => {
+  if (!$('who').classList.contains('on')) return;
+  if (e.key===' '||e.key==='Enter'||e.key==='ArrowRight'){ e.preventDefault(); $('ans').classList.contains('on') ? back() : reveal(); }
+  if (e.key==='Escape'||e.key==='ArrowLeft') back();
+});
+
+/* ---------- 音效 ---------- */
+let AC = null, sndOn = true;
+try { sndOn = localStorage.getItem('sped13_snd') !== '0'; } catch(e){}
+$('sndBtn').textContent = sndOn ? '🔊' : '🔇';
+$('sndBtn').onclick = () => { sndOn = !sndOn; $('sndBtn').textContent = sndOn ? '🔊' : '🔇'; try{localStorage.setItem('sped13_snd', sndOn?'1':'0');}catch(e){} };
+function ac(){ if (!AC) { try { AC = new (window.AudioContext||window.webkitAudioContext)(); } catch(e){} } if (AC && AC.state==='suspended') AC.resume(); return AC; }
+function tone(f, t0, dur, type='sine', vol=.3){
+  const a = ac(); if (!a || !sndOn) return;
+  const o = a.createOscillator(), g = a.createGain(); o.type = type; o.frequency.value = f;
+  g.gain.setValueAtTime(0, a.currentTime+t0); g.gain.linearRampToValueAtTime(vol, a.currentTime+t0+.01);
+  g.gain.exponentialRampToValueAtTime(.001, a.currentTime+t0+dur);
+  o.connect(g).connect(a.destination); o.start(a.currentTime+t0); o.stop(a.currentTime+t0+dur+.05);
+}
+function noise(t0, dur, vol=.25){
+  const a = ac(); if (!a || !sndOn) return;
+  const buf = a.createBuffer(1, a.sampleRate*dur, a.sampleRate), d = buf.getChannelData(0);
+  for (let i=0;i<d.length;i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/d.length, 3);
+  const s = a.createBufferSource(), g = a.createGain(), f = a.createBiquadFilter();
+  f.type='lowpass'; f.frequency.value = 900; s.buffer = buf; g.gain.value = vol;
+  s.connect(f).connect(g).connect(a.destination); s.start(a.currentTime+t0);
+}
+const tick = () => tone(1200, 0, .05, 'square', .12);
+const whoosh = () => { [300,450,650].forEach((f,i)=>tone(f, i*.05, .18, 'triangle', .2)); };
+function drum(done){
+  const n = 14; for (let i=0;i<n;i++) noise(i*.07, .08, .35);
+  setTimeout(()=>{ [523,659,784,1047].forEach((f,i)=>tone(f, i*.09, .5, 'triangle', .35)); tone(1047, .36, .8, 'sine', .25); done(); }, n*70);
+}
+function cheer(){
+  confetti();
+  const a = ac(); if (!a || !sndOn) return;
+  for (let i=0;i<22;i++) noise(.05+Math.random()*1.4, .25, .12);
+}
+
+/* ---------- 彩帶 ---------- */
+const cv = $('fx'), cx = cv.getContext('2d'); let bits = [], raf = 0;
+function fit(){ cv.width = innerWidth*devicePixelRatio; cv.height = innerHeight*devicePixelRatio; }
+addEventListener('resize', fit); fit();
+function confetti(){
+  const cols = ['#F07A1A','#FFC83D','#2FBF4A','#1368CE','#E21B3C','#B05CFF'];
+  for (let i=0;i<180;i++) bits.push({x:Math.random()*cv.width, y:-Math.random()*cv.height*.4, vx:(Math.random()-.5)*4, vy:2+Math.random()*5,
+    r:Math.random()*6.28, vr:(Math.random()-.5)*.3, w:8+Math.random()*10, h:5+Math.random()*6, c:cols[i%cols.length], life:0});
+  if (!raf) loop();
+}
+function loop(){
+  cx.clearRect(0,0,cv.width,cv.height);
+  bits = bits.filter(b => b.y < cv.height+40 && b.life < 260);
+  bits.forEach(b => { b.x+=b.vx*devicePixelRatio; b.y+=b.vy*devicePixelRatio; b.r+=b.vr; b.life++;
+    cx.save(); cx.translate(b.x,b.y); cx.rotate(b.r); cx.fillStyle=b.c; cx.fillRect(-b.w/2,-b.h/2,b.w,b.h); cx.restore(); });
+  raf = bits.length ? requestAnimationFrame(loop) : 0;
+  if (!raf) cx.clearRect(0,0,cv.width,cv.height);
+}
+
+drawGrid();
+</script>
+</body>
+</html>
